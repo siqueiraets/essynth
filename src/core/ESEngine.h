@@ -389,47 +389,6 @@ class ESEngine {
     std::vector<ESConnectionData> connection_data_;
 };
 
-inline ESInt32Type InputFlag(const ESInt32Type input) { return 1 << input; }
-
-template <typename DataType>
-void WriteOutput(const ESInt32Type index, const ESOutputRuntime* outputs, const DataType& data);
-
-template <>
-inline void WriteOutput<ESInt32Type>(const ESInt32Type index, const ESOutputRuntime* outputs,
-                                     const ESInt32Type& data) {
-    ESInt32Type i = 0;
-    while (i < outputs[index].count) {
-        outputs[index].connections[i].data->data_int32 = data;
-        outputs[index].connections[i].module->flags |=
-            InputFlag(outputs[index].connections[i].input);
-        ++i;
-    }
-}
-
-template <>
-inline void WriteOutput<ESFloatType>(const ESInt32Type index, const ESOutputRuntime* outputs,
-                                     const ESFloatType& data) {
-    ESInt32Type i = 0;
-    while (i < outputs[index].count) {
-        outputs[index].connections[i].data->data_float = data;
-        outputs[index].connections[i].module->flags |=
-            InputFlag(outputs[index].connections[i].input);
-        ++i;
-    }
-}
-
-template <>
-inline void WriteOutput<ESData>(const ESInt32Type index, const ESOutputRuntime* outputs,
-                                const ESData& data) {
-    ESInt32Type i = 0;
-    while (i < outputs[index].count) {
-        *outputs[index].connections[i].data = data;
-        outputs[index].connections[i].module->flags |=
-            InputFlag(outputs[index].connections[i].input);
-        ++i;
-    }
-}
-
 }  // namespace ESSynth
 
 #endif /* ESENGINE_H_ */
