@@ -5,17 +5,29 @@
 
 namespace ESSynth {
 
-struct ESModuleSubtractFloat {
-    static constexpr ESInt32Type num_inputs = 2;
-    static constexpr ESInt32Type num_outputs = 1;
-    static constexpr ESInt32Type num_internals = 0;
+enum class ESModuleSubtractFloatInputs { In1, In2 };
 
-    static ESInt32Type Process(const ESData* inputs, ESOutput* outputs, ESData*,
-                        const ESInt32Type& flags) {
+enum class ESModuleSubtractFloatOutputs { Out1 };
+
+struct ESModuleSubtractFloat
+    : ESModule<ESModuleSubtractFloat, ESModuleSubtractFloatInputs, ESModuleSubtractFloatOutputs> {
+    static constexpr ESInputList GetInputList() {
+        return {MakeInput(ESDataType::Float, "In1", TIn::In1),
+                MakeInput(ESDataType::Float, "In2", TIn::In2)};
+    }
+
+    static constexpr ESOutputList GetOutputList() {
+        return {MakeOutput(ESDataType::Float, "Out", TOut::Out1)};
+    }
+
+    static constexpr ESOutputList GetInternalList() { return {}; }
+
+    static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData*,
+                               const ESInt32Type& flags) {
         if (flags == 0) {
             return 0;
         }
-        WriteOutput(0, outputs, inputs[0].data_float - inputs[1].data_float);
+        WriteOutput<TOut::Out1>(outputs, Input<TIn::In1>(inputs) - Input<TIn::In2>(inputs));
         return 0;
     }
 };

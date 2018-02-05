@@ -9,16 +9,29 @@ namespace ESSynth {
 // TODO: Avoid using a global pointer
 ESMidiInterface* gMidiInterface = nullptr;
 
-struct ESModuleMidiNote {
-    static constexpr ESInt32Type num_inputs = 1;
-    static constexpr ESInt32Type num_outputs = 3;
-    static constexpr ESInt32Type num_internals = 0;
+enum class ESModuleMidiNoteInputs { MidiEvent };
+
+enum class ESModuleMidiNoteOutputs { MidiNote, MidiVelocity, MidiGate };
+
+struct ESModuleMidiNote
+    : ESModule<ESModuleMidiNote, ESModuleMidiNoteInputs, ESModuleMidiNoteOutputs> {
+    static constexpr ESInputList GetInputList() {
+        return {MakeInput(ESDataType::Integer, "MidiEvent", TIn::MidiEvent)};
+    }
+
+    static constexpr ESOutputList GetOutputList() {
+        return {MakeOutput(ESDataType::Integer, "MidiNote", TOut::MidiNote),
+                MakeOutput(ESDataType::Integer, "MidiVelocity", TOut::MidiVelocity),
+                MakeOutput(ESDataType::Integer, "MidiGate", TOut::MidiGate)};
+    }
+
+    static constexpr ESOutputList GetInternalList() { return {}; }
 
     static void Initialize(ESModuleRuntimeData*, ESData*, ESMidiInterface* midiInterface) {
         gMidiInterface = midiInterface;
     }
 
-    static ESInt32Type Process(const ESData*, ESOutput* outputs, ESData*,
+    static ESInt32Type Process(const ESData*, ESOutputRuntime* outputs, ESData*,
                                const ESInt32Type& flags) {
         if (flags == 0 || !gMidiInterface) {
             return 0;
@@ -27,10 +40,10 @@ struct ESModuleMidiNote {
         ESInt32Type note;
         ESInt32Type velocity;
         ESInt32Type gate;
-        if(gMidiInterface->GetNoteEvent(note, velocity, gate)) {
-            WriteOutput(0, outputs, note);
-            WriteOutput(1, outputs, velocity);
-            WriteOutput(2, outputs, gate);
+        if (gMidiInterface->GetNoteEvent(note, velocity, gate)) {
+            WriteOutput<TOut::MidiNote>(outputs, note);
+            WriteOutput<TOut::MidiVelocity>(outputs, velocity);
+            WriteOutput<TOut::MidiGate>(outputs, gate);
         }
 
         return 0;

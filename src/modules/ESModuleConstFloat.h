@@ -5,22 +5,33 @@
 
 namespace ESSynth {
 
-struct ESModuleConstFloat {
-    static constexpr ESInt32Type num_inputs = 0;
-    static constexpr ESInt32Type num_outputs = 1;
-    static constexpr ESInt32Type num_internals = 1;
+enum class ESModuleConstFloatOutputs { ConstValue };
+
+enum class ESModuleConstFloatInternals { ConstValue };
+
+struct ESModuleConstFloat : ESModule<ESModuleConstFloat, ESEmptyKeyType, ESModuleConstFloatOutputs,
+                                     ESModuleConstFloatInternals> {
+    static constexpr ESInputList GetInputList() { return {}; }
+
+    static constexpr ESOutputList GetOutputList() {
+        return {MakeOutput(ESDataType::Float, "ConstValue", TOut::ConstValue)};
+    }
+
+    static constexpr ESOutputList GetInternalList() {
+        return {MakeInternal(ESDataType::Float, "ConstValue", TInt::ConstValue)};
+    }
 
     static void Initialize(ESModuleRuntimeData* data, ESData* internals, ESFloatType value) {
-        internals[0].data_float = value;
+        Internal<TInt::ConstValue>(internals) = value;
         data->flags |= 1;
     }
 
-    static ESInt32Type Process(const ESData*, ESOutput* outputs, ESData* internals,
-                        const ESInt32Type& flags) {
+    static ESInt32Type Process(const ESData*, ESOutputRuntime* outputs, ESData* internals,
+                               const ESInt32Type& flags) {
         if (flags == 0) {
             return 0;
         }
-        WriteOutput(0, outputs, internals[0].data_float);
+        WriteOutput<TOut::ConstValue>(outputs, internals[0].data_float);
         return 0;
     }
 };

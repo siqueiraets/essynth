@@ -15,6 +15,8 @@ typedef union ESData {
     ESFloatType data_float;
 } ESData;
 
+enum class ESDataType { Integer, Float, Bool, Sample, Opaque };
+
 }  // namespace ESSynth
 
 #endif /* ESDATATYPES_H_ */

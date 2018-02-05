@@ -9,24 +9,36 @@ namespace ESSynth {
 // TODO avoid using global variable
 ESAudioInterface* gAudioInterface = nullptr;
 
-struct ESModuleAudioOut {
-    static constexpr ESInt32Type num_inputs = 1;
-    static constexpr ESInt32Type num_outputs = 0;
-    static constexpr ESInt32Type num_internals = 1;
+enum class ESModuleAudioOutInputs { Amplitude };
+
+enum class ESModuleAudioOutInternals { OutputId };
+
+struct ESModuleAudioOut : ESModule<ESModuleAudioOut, ESModuleAudioOutInputs, ESEmptyKeyType,
+                                   ESModuleAudioOutInternals> {
+    static constexpr ESInputList GetInputList() {
+        return {MakeInput(ESDataType::Float, "Amplitude", TIn::Amplitude)};
+    }
+
+    static constexpr ESOutputList GetOutputList() { return {}; }
+
+    static constexpr ESOutputList GetInternalList() {
+        return {MakeInternal(ESDataType::Integer, "OutputId", TInt::OutputId)};
+    }
 
     static void Initialize(ESModuleRuntimeData*, ESData* internals, ESInt32Type outputId,
                            ESAudioInterface* audioInterface) {
         gAudioInterface = audioInterface;
-        internals[0].data_int32 = outputId;
+        Internal<TInt::OutputId>(internals) = outputId;
     }
 
-    static ESInt32Type Process(const ESData* inputs, ESOutput*, ESData* internals,
+    static ESInt32Type Process(const ESData* inputs, ESOutputRuntime*, ESData* internals,
                                const ESInt32Type& flags) {
         if (flags == 0) {
             return 0;
         }
 
-        gAudioInterface->WriteOutput(internals[0].data_int32, inputs[0].data_float);
+        gAudioInterface->WriteOutput(Internal<TInt::OutputId>(internals),
+                                     Input<TIn::Amplitude>(inputs));
         return 0;
     }
 };

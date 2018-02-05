@@ -5,17 +5,28 @@
 
 namespace ESSynth {
 
-struct ESModuleFloatToInt {
-    static constexpr ESInt32Type num_inputs = 1;
-    static constexpr ESInt32Type num_outputs = 1;
-    static constexpr ESInt32Type num_internals = 0;
+enum class ESModuleFloatToIntInputs { FloatValue };
 
-    static ESInt32Type Process(const ESData* inputs, ESOutput* outputs, ESData*,
-                        const ESInt32Type& flags) {
+enum class ESModuleFloatToIntOutputs { IntValue };
+
+struct ESModuleFloatToInt
+    : ESModule<ESModuleFloatToInt, ESModuleFloatToIntInputs, ESModuleFloatToIntOutputs> {
+    static constexpr ESInputList GetInputList() {
+        return {MakeInput(ESDataType::Float, "FloatValue", TIn::FloatValue)};
+    }
+
+    static constexpr ESOutputList GetOutputList() {
+        return {MakeOutput(ESDataType::Integer, "IntValue", TOut::IntValue)};
+    }
+
+    static constexpr ESOutputList GetInternalList() { return {}; }
+
+    static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData*,
+                               const ESInt32Type& flags) {
         if (flags == 0) {
             return 0;
         }
-        WriteOutput(0, outputs, (ESInt32Type)inputs[0].data_float);
+        WriteOutput<TOut::IntValue>(outputs, (ESInt32Type)Input<TIn::FloatValue>(inputs));
         return 0;
     }
 };

@@ -9,16 +9,27 @@ namespace ESSynth {
 // TODO: Avoid using a global pointer
 ESMidiInterface* gEventMidiInterface = nullptr;
 
-struct ESModuleMidiEvent {
-    static constexpr ESInt32Type num_inputs = 1;
-    static constexpr ESInt32Type num_outputs = 1;
-    static constexpr ESInt32Type num_internals = 0;
+enum class ESModuleMidiEventInputs { ClockEvent };
+
+enum class ESModuleMidiEventOutputs { MidiEvent };
+
+struct ESModuleMidiEvent
+    : ESModule<ESModuleMidiEvent, ESModuleMidiEventInputs, ESModuleMidiEventOutputs> {
+    static constexpr ESInputList GetInputList() {
+        return {MakeInput(ESDataType::Integer, "ClockEvent", TIn::ClockEvent)};
+    }
+
+    static constexpr ESOutputList GetOutputList() {
+        return {MakeOutput(ESDataType::Integer, "MidiEvent", TOut::MidiEvent)};
+    }
+
+    static constexpr ESOutputList GetInternalList() { return {}; }
 
     static void Initialize(ESModuleRuntimeData*, ESData*, ESMidiInterface* midiInterface) {
         gEventMidiInterface = midiInterface;
     }
 
-    static ESInt32Type Process(const ESData*, ESOutput* outputs, ESData*,
+    static ESInt32Type Process(const ESData*, ESOutputRuntime* outputs, ESData*,
                                const ESInt32Type& flags) {
         if (flags == 0 || !gEventMidiInterface) {
             return 0;
@@ -27,7 +38,7 @@ struct ESModuleMidiEvent {
         gEventMidiInterface->RefreshEvents();
         ESInt32Type eventCount = gEventMidiInterface->GetEventCount();
         if (eventCount > 0) {
-            WriteOutput(0, outputs, eventCount);
+            WriteOutput<TOut::MidiEvent>(outputs, eventCount);
         }
 
         return 0;

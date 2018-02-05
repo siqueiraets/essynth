@@ -71,37 +71,92 @@ struct ESModuleTriangleOsc : public ESModuleOscillatorBase<ESModuleTriangleOsc> 
     }
 };
 
-struct ESModuleInputSelect {
+enum class ESModuleInputSelectInputs { In1, In2, In3, In4 };
+
+enum class ESModuleInputSelectOutputs { Out };
+
+enum class ESModuleInputSelectInternals { CurSelection };
+
+struct ESModuleInputSelect : ESModule<ESModuleInputSelect, ESModuleInputSelectInputs,
+                                      ESModuleInputSelectOutputs, ESModuleInputSelectInternals> {
     static constexpr ESInt32Type num_inputs = 4;
     static constexpr ESInt32Type num_outputs = 1;
     static constexpr ESInt32Type num_internals = 1;
 
-    static void Initialize(ESModuleRuntimeData*, ESData* internals) { internals[0].data_int32 = 0; }
+    static constexpr ESInputList GetInputList() {
+        return {MakeInput(ESDataType::Opaque, "In1", TIn::In1),
+                MakeInput(ESDataType::Opaque, "In2", TIn::In2),
+                MakeInput(ESDataType::Opaque, "In3", TIn::In3),
+                MakeInput(ESDataType::Opaque, "In4", TIn::In4)};
+    }
 
-    static ESInt32Type Process(const ESData* inputs, ESOutput* outputs, ESData* internals,
+    static constexpr ESOutputList GetOutputList() {
+        return {MakeOutput(ESDataType::Opaque, "Out", TOut::Out)};
+    }
+
+    static constexpr ESOutputList GetInternalList() {
+        return {MakeInternal(ESDataType::Integer, "CurSelection", TInt::CurSelection)};
+    }
+
+    static void Initialize(ESModuleRuntimeData*, ESData* internals) {
+        Internal<TInt::CurSelection>(internals) = 0;
+    }
+
+    static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData* internals,
                                const ESInt32Type& flags) {
         if (flags == 0) {
             return 0;
         }
+
         if (flags & InputFlag(3)) {
-            internals[0].data_int32++;
-            if (internals[0].data_int32 >= 3) {
-                internals[0].data_int32 = 0;
+            Internal<TInt::CurSelection>(internals)++;
+            if (Internal<TInt::CurSelection>(internals) >= 3) {
+                Internal<TInt::CurSelection>(internals) = 0;
             }
             return 0;
         }
-        WriteOutput(0, outputs, inputs[internals[0].data_int32]);
+
+        switch (Internal<TInt::CurSelection>(internals)) {
+            case 0:
+                WriteOutput<TOut::Out>(outputs, Input<TIn::In1>(inputs));
+                break;
+            case 1:
+                WriteOutput<TOut::Out>(outputs, Input<TIn::In2>(inputs));
+                break;
+            case 2:
+                WriteOutput<TOut::Out>(outputs, Input<TIn::In3>(inputs));
+                break;
+            case 3:
+            default:
+                WriteOutput<TOut::Out>(outputs, Input<TIn::In4>(inputs));
+                break;
+        }
 
         return 0;
     }
 };
 
-struct ESModuleNoteToFreq {
+enum class ESModuleNoteToFreqInputs { MidiNote };
+
+enum class ESModuleNoteToFreqOutputs { Frequency };
+
+struct ESModuleNoteToFreq
+    : ESModule<ESModuleNoteToFreq, ESModuleNoteToFreqInputs, ESModuleNoteToFreqOutputs> {
     static constexpr ESInt32Type num_inputs = 1;
     static constexpr ESInt32Type num_outputs = 1;
     static constexpr ESInt32Type num_internals = 0;
 
-    static ESInt32Type Process(const ESData* inputs, ESOutput* outputs, ESData*,
+    static constexpr ESInputList GetInputList() {
+        return {MakeInput(ESDataType::Integer, "MidiNote", TIn::MidiNote)};
+    }
+
+    static constexpr ESOutputList GetOutputList() {
+        return {MakeOutput(ESDataType::Float, "Frequency", TOut::Frequency)};
+    }
+
+    static constexpr ESOutputList GetInternalList() { return {}; }
+
+    static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData*,
                                const ESInt32Type& flags) {
         if (flags == 0) {
             return 0;
@@ -122,30 +177,52 @@ struct ESModuleNoteToFreq {
             2093.0f,  2217.46f, 2349.32f, 2489.02f, 2637.02f, 2793.83f, 2959.96f, 3135.96f,
             3322.44f, 3520.0f,  3729.31f, 3951.07f, 4186.01f, 4434.92f, 4698.63f, 4978.03f,
             5274.04f, 5587.65f, 5919.91f, 6271.93f, 6644.88f, 7040.0f,  7458.62f, 7902.13f};
-        WriteOutput(0, outputs, (ESFloatType)notes[inputs[0].data_int32]);
+        WriteOutput<TOut::Frequency>(outputs, (ESFloatType)notes[Input<TIn::MidiNote>(inputs)]);
         return 0;
     }
 };
 
-struct ESModuleGate {
+enum class ESModuleGateInputs { Gate, EventIn };
+
+enum class ESModuleGateOutputs { EventOut };
+
+enum class ESModuleGateInternals { LastGate };
+
+struct ESModuleGate
+    : ESModule<ESModuleGate, ESModuleGateInputs, ESModuleGateOutputs, ESModuleGateInternals> {
     static constexpr ESInt32Type num_inputs = 2;
     static constexpr ESInt32Type num_outputs = 1;
     static constexpr ESInt32Type num_internals = 1;
 
-    static void Initialize(ESModuleRuntimeData*, ESData* internals) { internals[0].data_int32 = 0; }
+    static constexpr ESInputList GetInputList() {
+        return {MakeInput(ESDataType::Integer, "Gate", TIn::Gate),
+                MakeInput(ESDataType::Opaque, "EventIn", TIn::EventIn)};
+    }
 
-    static ESInt32Type Process(const ESData* inputs, ESOutput* outputs, ESData* internals,
+    static constexpr ESOutputList GetOutputList() {
+        return {MakeOutput(ESDataType::Opaque, "EventOut", TOut::EventOut)};
+    }
+
+    static constexpr ESOutputList GetInternalList() {
+        return {MakeInternal(ESDataType::Integer, "LastGate", TInt::LastGate)};
+    }
+
+    static void Initialize(ESModuleRuntimeData*, ESData* internals) {
+        Internal<TInt::LastGate>(internals) = 0;
+    }
+
+    static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData* internals,
                                const ESInt32Type& flags) {
         if (flags == 0) {
             return 0;
         }
         if (flags & InputFlag(0)) {
-            internals[0].data_int32 = inputs[0].data_int32;
+            Internal<TInt::LastGate>(internals) = Input<TIn::Gate>(inputs);
         }
 
         if (flags & InputFlag(1)) {
-            if (internals[0].data_int32) {
-                WriteOutput(0, outputs, inputs[1]);
+            if (Internal<TInt::LastGate>(internals)) {
+                WriteOutput<TOut::EventOut>(outputs, Input<TIn::EventIn>(inputs));
             }
         }
         return 0;
