@@ -12,11 +12,11 @@ enum class ESModuleIntToFloatOutputs { FloatValue };
 struct ESModuleIntToFloat
     : ESModule<ESModuleIntToFloat, ESModuleIntToFloatInputs, ESModuleIntToFloatOutputs> {
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Integer, "IntValue", TIn::IntValue)};
+        return {{MakeInput(ESDataType::Integer, "IntValue", TIn::IntValue)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Float, "FloatValue", TOut::FloatValue)};
+        return {{MakeOutput(ESDataType::Float, "FloatValue", TOut::FloatValue)}};
     }
 
     static constexpr ESOutputList GetInternalList() { return {}; }

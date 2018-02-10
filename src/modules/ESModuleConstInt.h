@@ -14,11 +14,11 @@ struct ESModuleConstInt : ESModule<ESModuleConstInt, ESEmptyKeyType, ESModuleCon
     static constexpr ESInputList GetInputList() { return {}; }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Integer, "ConstValue", TOut::ConstValue)};
+        return {{MakeOutput(ESDataType::Integer, "ConstValue", TOut::ConstValue)}};
     }
 
     static constexpr ESOutputList GetInternalList() {
-        return {MakeInternal(ESDataType::Integer, "ConstValue", TInt::ConstValue)};
+        return {{MakeInternal(ESDataType::Integer, "ConstValue", TInt::ConstValue)}};
     }
 
     static void Initialize(ESModuleRuntimeData* data, ESData* internals, ESInt32Type value) {

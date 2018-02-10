@@ -14,11 +14,11 @@ struct ESModuleConstFloat : ESModule<ESModuleConstFloat, ESEmptyKeyType, ESModul
     static constexpr ESInputList GetInputList() { return {}; }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Float, "ConstValue", TOut::ConstValue)};
+        return {{MakeOutput(ESDataType::Float, "ConstValue", TOut::ConstValue)}};
     }
 
     static constexpr ESOutputList GetInternalList() {
-        return {MakeInternal(ESDataType::Float, "ConstValue", TInt::ConstValue)};
+        return {{MakeInternal(ESDataType::Float, "ConstValue", TInt::ConstValue)}};
     }
 
     static void Initialize(ESModuleRuntimeData* data, ESData* internals, ESFloatType value) {

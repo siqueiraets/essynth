@@ -12,12 +12,12 @@ enum class ESModuleMultiplyFloatOutputs { Out1 };
 struct ESModuleMultiplyFloat
     : ESModule<ESModuleMultiplyFloat, ESModuleMultiplyFloatInputs, ESModuleMultiplyFloatOutputs> {
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Float, "In1", TIn::In1),
-                MakeInput(ESDataType::Float, "In2", TIn::In2)};
+        return {{MakeInput(ESDataType::Float, "In1", TIn::In1),
+                MakeInput(ESDataType::Float, "In2", TIn::In2)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Float, "Out", TOut::Out1)};
+        return {{MakeOutput(ESDataType::Float, "Out", TOut::Out1)}};
     }
 
     static constexpr ESInternalList GetInternalList() { return {}; }

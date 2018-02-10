@@ -25,16 +25,16 @@ struct ESModuleOscillatorBase
 
     static ESFloatType osc_table[ES_OSC_RESOLUTION];
     static constexpr ESInputList GetInputList() {
-        return {BaseType::MakeInput(ESDataType::Float, "Frequency", BaseType::TIn::Frequency),
-                BaseType::MakeInput(ESDataType::Integer, "Clock", BaseType::TIn::Clock)};
+        return {{BaseType::MakeInput(ESDataType::Float, "Frequency", BaseType::TIn::Frequency),
+                BaseType::MakeInput(ESDataType::Integer, "Clock", BaseType::TIn::Clock)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {BaseType::MakeOutput(ESDataType::Float, "Amplitude", BaseType::TOut::Amplitude)};
+        return {{BaseType::MakeOutput(ESDataType::Float, "Amplitude", BaseType::TOut::Amplitude)}};
     }
 
     static constexpr ESOutputList GetInternalList() {
-        return {BaseType::MakeInternal(ESDataType::Float, "Phase", BaseType::TInt::Phase)};
+        return {{BaseType::MakeInternal(ESDataType::Float, "Phase", BaseType::TInt::Phase)}};
     }
 
     static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData* internals,

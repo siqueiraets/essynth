@@ -16,13 +16,13 @@ enum class ESModuleAudioOutInternals { OutputId };
 struct ESModuleAudioOut : ESModule<ESModuleAudioOut, ESModuleAudioOutInputs, ESEmptyKeyType,
                                    ESModuleAudioOutInternals> {
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Float, "Amplitude", TIn::Amplitude)};
+        return {{MakeInput(ESDataType::Float, "Amplitude", TIn::Amplitude)}};
     }
 
     static constexpr ESOutputList GetOutputList() { return {}; }
 
     static constexpr ESOutputList GetInternalList() {
-        return {MakeInternal(ESDataType::Integer, "OutputId", TInt::OutputId)};
+        return {{MakeInternal(ESDataType::Integer, "OutputId", TInt::OutputId)}};
     }
 
     static void Initialize(ESModuleRuntimeData*, ESData* internals, ESInt32Type outputId,

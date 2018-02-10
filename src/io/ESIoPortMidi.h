@@ -67,7 +67,6 @@ class ESIoPortMidi : public ESMidiInterface {
     PmEvent events_[kPortMidiEventCount];
     ESInt32Type event_count_;
     ESInt32Type events_processed_;
-    PmDeviceID midi_device_;
     PortMidiStream* midi_stream_;
 };
 

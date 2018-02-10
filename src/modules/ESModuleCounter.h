@@ -14,13 +14,13 @@ struct ESModuleCounter
     static constexpr ESInputList GetInputList() { return {}; }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Integer, "Value", TOut::Value)};
+        return {{MakeOutput(ESDataType::Integer, "Value", TOut::Value)}};
     }
 
     static constexpr ESOutputList GetInternalList() {
-        return {MakeInternal(ESDataType::Integer, "InitialValue", TInt::InitialValue),
+        return {{MakeInternal(ESDataType::Integer, "InitialValue", TInt::InitialValue),
                 MakeInternal(ESDataType::Integer, "CurrentValue", TInt::CurrentValue),
-                MakeInternal(ESDataType::Integer, "FinalValue", TInt::FinalValue)};
+                MakeInternal(ESDataType::Integer, "FinalValue", TInt::FinalValue)}};
     }
 
     static void Initialize(ESModuleRuntimeData* runtimeData, ESData* internals,

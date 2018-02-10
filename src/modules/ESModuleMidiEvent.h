@@ -16,11 +16,11 @@ enum class ESModuleMidiEventOutputs { MidiEvent };
 struct ESModuleMidiEvent
     : ESModule<ESModuleMidiEvent, ESModuleMidiEventInputs, ESModuleMidiEventOutputs> {
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Integer, "ClockEvent", TIn::ClockEvent)};
+        return {{MakeInput(ESDataType::Integer, "ClockEvent", TIn::ClockEvent)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Integer, "MidiEvent", TOut::MidiEvent)};
+        return {{MakeOutput(ESDataType::Integer, "MidiEvent", TOut::MidiEvent)}};
     }
 
     static constexpr ESOutputList GetInternalList() { return {}; }

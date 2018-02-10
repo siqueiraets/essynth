@@ -11,12 +11,12 @@ enum class ESModuleAddIntOutputs { Out1 };
 
 struct ESModuleAddInt : ESModule<ESModuleAddInt, ESModuleAddIntInputs, ESModuleAddIntOutputs> {
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Integer, "In1", TIn::In1),
-                MakeInput(ESDataType::Integer, "In2", TIn::In2)};
+        return {{MakeInput(ESDataType::Integer, "In1", TIn::In1),
+                MakeInput(ESDataType::Integer, "In2", TIn::In2)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Integer, "Out", TOut::Out1)};
+        return {{MakeOutput(ESDataType::Integer, "Out", TOut::Out1)}};
     }
 
     static constexpr ESOutputList GetInternalList() { return {}; }

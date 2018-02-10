@@ -14,16 +14,16 @@ enum class ESModuleEventDividerInternals { MaxCount, CurrentValue };
 struct ESModuleEventDivider : ESModule<ESModuleEventDivider, ESModuleEventDividerInputs,
                                        ESModuleEventDividerOutputs, ESModuleEventDividerInternals> {
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Opaque, "InEvent", TIn::InEvent)};
+        return {{MakeInput(ESDataType::Opaque, "InEvent", TIn::InEvent)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Opaque, "OutEvent", TOut::OutEvent)};
+        return {{MakeOutput(ESDataType::Opaque, "OutEvent", TOut::OutEvent)}};
     }
 
     static constexpr ESOutputList GetInternalList() {
-        return {MakeInternal(ESDataType::Integer, "MaxCount", TInt::MaxCount),
-                MakeInternal(ESDataType::Integer, "CurrentValue", TInt::CurrentValue)};
+        return {{MakeInternal(ESDataType::Integer, "MaxCount", TInt::MaxCount),
+                MakeInternal(ESDataType::Integer, "CurrentValue", TInt::CurrentValue)}};
     }
 
     static void Initialize(ESModuleRuntimeData*, ESData* internals, ESInt32Type count) {

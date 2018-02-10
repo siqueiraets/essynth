@@ -16,13 +16,13 @@ enum class ESModuleMidiNoteOutputs { MidiNote, MidiVelocity, MidiGate };
 struct ESModuleMidiNote
     : ESModule<ESModuleMidiNote, ESModuleMidiNoteInputs, ESModuleMidiNoteOutputs> {
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Integer, "MidiEvent", TIn::MidiEvent)};
+        return {{MakeInput(ESDataType::Integer, "MidiEvent", TIn::MidiEvent)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Integer, "MidiNote", TOut::MidiNote),
+        return {{MakeOutput(ESDataType::Integer, "MidiNote", TOut::MidiNote),
                 MakeOutput(ESDataType::Integer, "MidiVelocity", TOut::MidiVelocity),
-                MakeOutput(ESDataType::Integer, "MidiGate", TOut::MidiGate)};
+                MakeOutput(ESDataType::Integer, "MidiGate", TOut::MidiGate)}};
     }
 
     static constexpr ESOutputList GetInternalList() { return {}; }

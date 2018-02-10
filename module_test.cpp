@@ -84,18 +84,18 @@ struct ESModuleInputSelect : ESModule<ESModuleInputSelect, ESModuleInputSelectIn
     static constexpr ESInt32Type num_internals = 1;
 
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Opaque, "In1", TIn::In1),
+        return {{MakeInput(ESDataType::Opaque, "In1", TIn::In1),
                 MakeInput(ESDataType::Opaque, "In2", TIn::In2),
                 MakeInput(ESDataType::Opaque, "In3", TIn::In3),
-                MakeInput(ESDataType::Opaque, "In4", TIn::In4)};
+                MakeInput(ESDataType::Opaque, "In4", TIn::In4)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Opaque, "Out", TOut::Out)};
+        return {{MakeOutput(ESDataType::Opaque, "Out", TOut::Out)}};
     }
 
-    static constexpr ESOutputList GetInternalList() {
-        return {MakeInternal(ESDataType::Integer, "CurSelection", TInt::CurSelection)};
+    static constexpr ESInternalList GetInternalList() {
+        return {{MakeInternal(ESDataType::Integer, "CurSelection", TInt::CurSelection)}};
     }
 
     static void Initialize(ESModuleRuntimeData*, ESData* internals) {
@@ -147,11 +147,11 @@ struct ESModuleNoteToFreq
     static constexpr ESInt32Type num_internals = 0;
 
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Integer, "MidiNote", TIn::MidiNote)};
+        return {{MakeInput(ESDataType::Integer, "MidiNote", TIn::MidiNote)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Float, "Frequency", TOut::Frequency)};
+        return {{MakeOutput(ESDataType::Float, "Frequency", TOut::Frequency)}};
     }
 
     static constexpr ESOutputList GetInternalList() { return {}; }
@@ -195,16 +195,16 @@ struct ESModuleGate
     static constexpr ESInt32Type num_internals = 1;
 
     static constexpr ESInputList GetInputList() {
-        return {MakeInput(ESDataType::Integer, "Gate", TIn::Gate),
-                MakeInput(ESDataType::Opaque, "EventIn", TIn::EventIn)};
+        return {{MakeInput(ESDataType::Integer, "Gate", TIn::Gate),
+                MakeInput(ESDataType::Opaque, "EventIn", TIn::EventIn)}};
     }
 
     static constexpr ESOutputList GetOutputList() {
-        return {MakeOutput(ESDataType::Opaque, "EventOut", TOut::EventOut)};
+        return {{MakeOutput(ESDataType::Opaque, "EventOut", TOut::EventOut)}};
     }
 
     static constexpr ESOutputList GetInternalList() {
-        return {MakeInternal(ESDataType::Integer, "LastGate", TInt::LastGate)};
+        return {{MakeInternal(ESDataType::Integer, "LastGate", TInt::LastGate)}};
     }
 
     static void Initialize(ESModuleRuntimeData*, ESData* internals) {
