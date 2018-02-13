@@ -4,11 +4,12 @@
 #include "ESEngine.h"
 #include "ESIoPortAudio.h"
 #include "ESIoPortMidi.h"
+#include "ESModuleAddFloat.h"
 
 #include <iostream>
 
 using namespace ESSynth;
-extern void test_modules(ESEngine&, ESIoPortAudio&, ESIoPortMidi&);
+extern void test_modules(ESEngine&, ESIoPortAudio&);
 
 int main(int argc, char* argv[]) {
     QApplication a(argc, argv);
@@ -40,10 +41,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    test_modules(engine, audioInterface, midiInterface);
+    test_modules(engine, audioInterface);
 
     engine.Prepare();
-    audioInterface.Start();
+    if (audioInterface.Start() != 0) {
+        std::cerr << "Failed to start audio" << std::endl;
+        return 1;
+    }
 
     w.show();
     return a.exec();

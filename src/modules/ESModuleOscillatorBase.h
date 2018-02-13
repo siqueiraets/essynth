@@ -24,22 +24,25 @@ struct ESModuleOscillatorBase
                               ESModuleOscillatorBaseOutputs, ESModuleOscillatorBaseInternals>;
 
     static ESFloatType osc_table[ES_OSC_RESOLUTION];
-    static constexpr ESInputList GetInputList() {
-        return {{BaseType::MakeInput(ESDataType::Float, "Frequency", BaseType::TIn::Frequency),
-                BaseType::MakeInput(ESDataType::Integer, "Clock", BaseType::TIn::Clock)}};
+    static constexpr auto GetInputList() {
+        return BaseType::MakeIoList(
+            BaseType::MakeInput(ESDataType::Float, "Frequency", BaseType::TIn::Frequency),
+            BaseType::MakeInput(ESDataType::Integer, "Clock", BaseType::TIn::Clock));
     }
 
-    static constexpr ESOutputList GetOutputList() {
-        return {{BaseType::MakeOutput(ESDataType::Float, "Amplitude", BaseType::TOut::Amplitude)}};
+    static constexpr auto GetOutputList() {
+        return BaseType::MakeIoList(
+            BaseType::MakeOutput(ESDataType::Float, "Amplitude", BaseType::TOut::Amplitude));
     }
 
-    static constexpr ESOutputList GetInternalList() {
-        return {{BaseType::MakeInternal(ESDataType::Float, "Phase", BaseType::TInt::Phase)}};
+    static constexpr auto GetInternalList() {
+        return BaseType::MakeIoList(
+            BaseType::MakeInternal(ESDataType::Float, "Phase", BaseType::TInt::Phase));
     }
 
     static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData* internals,
                                const ESInt32Type& flags) {
-        if (flags == 0) {
+        if (!(flags & BaseType::InputFlag(BaseType::TIn::Clock))) {
             return 0;
         }
 

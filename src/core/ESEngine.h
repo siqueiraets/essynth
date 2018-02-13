@@ -2,28 +2,14 @@
 #define ESENGINE_H_
 
 #include <algorithm>
-#include <array>
 #include <functional>
 #include <map>
-#include <stdexcept>
-#include <type_traits>
 #include <vector>
 
 #include "ESDataTypes.h"
+#include "ESModule.h"
 
 namespace ESSynth {
-
-static constexpr ESInt32Type ESSynthMaxInputs = 10;
-static constexpr ESInt32Type ESSynthMaxOutputs = 10;
-static constexpr ESInt32Type ESSynthMaxInternals = 10;
-
-struct ESModuleData;
-struct ESOutputRuntime;
-struct ESModuleRuntimeData;
-
-using ESProcessFunction = ESInt32Type (*)(ESData* moduleData, ESOutputRuntime* outputs,
-                                          const ESInt32Type& flags);
-using ESInitializeFunction = std::function<void(ESModuleRuntimeData*, ESData*)>;
 
 typedef struct ESModuleData {
     ESInt32Type id;
@@ -34,19 +20,6 @@ typedef struct ESModuleData {
     ESInt32Type outs;
 } ESModuleData;
 
-typedef struct ESModuleRuntimeData {
-    ESProcessFunction process;
-    ESInt32Type size;
-    ESInt32Type outs;
-    ESInt32Type flags;
-} ESModuleRuntimeData;
-
-typedef struct ESConnectionData {
-    ESModuleRuntimeData* module;
-    ESData* data;
-    ESInt32Type input;
-} ESConnectionData;
-
 typedef struct ESConnectionInfo {
     ESInt32Type out_module;
     ESInt32Type output;
@@ -54,66 +27,13 @@ typedef struct ESConnectionInfo {
     ESInt32Type input;
 } ESConnectionInfo;
 
-typedef struct ESOutputRuntime {
-    ESInt32Type count;
-    ESConnectionData* connections;
-} ESOutputRuntime;
-
-typedef struct ESModuleItfDef {
-    ESDataType dataType;
-    const char* name;
-    ESInt32Type key;
-} ESModuleItfDef;
-
-enum class ESEmptyKeyType {};
-
-using ESInput = ESModuleItfDef;
-using ESOutput = ESModuleItfDef;
-using ESInternal = ESModuleItfDef;
-using ESInputList = std::array<ESInput, ESSynthMaxInputs>;
-using ESOutputList = std::array<ESOutput, ESSynthMaxOutputs>;
-using ESInternalList = std::array<ESInternal, ESSynthMaxInternals>;
+typedef struct ESConstValue {
+    ESInt32Type module;
+    ESInt32Type input;
+    ESData data;
+} ESConstValue;
 
 namespace Impl {
-
-template <typename T>
-void GetDataHelper(ESData* data);
-
-template <ESDataType DataType>
-typename std::enable_if<DataType == ESDataType::Integer, ESInt32Type&>::type GetDataHelper(
-    ESData* data) {
-    return data->data_int32;
-}
-
-template <ESDataType DataType>
-typename std::enable_if<DataType == ESDataType::Integer, const ESInt32Type&>::type GetDataHelper(
-    const ESData* data) {
-    return data->data_int32;
-}
-
-template <ESDataType DataType>
-typename std::enable_if<DataType == ESDataType::Float, ESFloatType&>::type GetDataHelper(
-    ESData* data) {
-    return data->data_float;
-}
-
-template <ESDataType DataType>
-typename std::enable_if<DataType == ESDataType::Float, const ESFloatType&>::type GetDataHelper(
-    const ESData* data) {
-    return data->data_float;
-}
-
-template <ESDataType DataType>
-typename std::enable_if<DataType == ESDataType::Opaque, ESData&>::type GetDataHelper(ESData* data) {
-    return *data;
-}
-
-template <ESDataType DataType>
-typename std::enable_if<DataType == ESDataType::Opaque, const ESData&>::type GetDataHelper(
-    const ESData* data) {
-    return *data;
-}
-
 template <typename ModuleType>
 static ESInt32Type ProcessModule(ESData* data, ESOutputRuntime* outputs, const ESInt32Type& flags) {
     return ModuleType::Process(data, outputs, &data[ModuleType::GetNumInputs()], flags);
@@ -140,11 +60,11 @@ struct InitializeModuleHelper {
     }
 };
 
-template <typename ModuleType, typename... InitArgs>
-struct InitializeModuleHelper<ModuleType, true, InitArgs...> {
-    static auto InitializeFunction(InitArgs... args) {
+template <typename ModuleType>
+struct InitializeModuleHelper<ModuleType, true> {
+    static auto InitializeFunction() {
         return [=](ESModuleRuntimeData* data, ESData* all_data) {
-            ModuleType::Initialize(data, &all_data[ModuleType::GetNumInputs()], args...);
+            ModuleType::Initialize(data, &all_data[ModuleType::GetNumInputs()]);
         };
     }
 };
@@ -158,142 +78,17 @@ static auto InitializeModule(InitArgs... args) {
 
 }  // namespace Impl
 
-template <typename ModuleType, typename InputKeyType = ESEmptyKeyType,
-          typename OutputKeyType = ESEmptyKeyType, typename InternalKeyType = ESEmptyKeyType>
-struct ESModule {
-    using TIn = InputKeyType;
-    using TOut = OutputKeyType;
-    using TInt = InternalKeyType;
-
-    static constexpr ESInput MakeInput(ESDataType dataType, const char* name, InputKeyType key) {
-        return ESInput{dataType, name, static_cast<ESInt32Type>(key)};
-    }
-
-    static constexpr ESOutput MakeOutput(ESDataType dataType, const char* name, OutputKeyType key) {
-        return ESOutput{dataType, name, static_cast<ESInt32Type>(key)};
-    }
-
-    static constexpr ESOutput MakeInternal(ESDataType dataType, const char* name,
-                                           InternalKeyType key) {
-        return ESInternal{dataType, name, static_cast<ESInt32Type>(key)};
-    }
-
-    static constexpr ESInput GetInput(InputKeyType key) {
-        for (const auto it : ModuleType::GetInputList()) {
-            if (it.key == static_cast<ESInt32Type>(key)) {
-                return it;
-            }
-        }
-    }
-
-    static constexpr ESInt32Type GetNumInputs() { return ModuleType::GetInputList().size(); }
-
-    static constexpr ESOutput GetOutput(OutputKeyType key) {
-        for (const auto it : ModuleType::GetOutputList()) {
-            if (it.key == static_cast<ESInt32Type>(key)) {
-                return it;
-            }
-        }
-    }
-
-    static constexpr ESInt32Type GetNumOutputs() { return ModuleType::GetOutputList().size(); }
-
-    static constexpr ESOutput GetInternal(InternalKeyType key) {
-        for (const auto it : ModuleType::GetInternalList()) {
-            if (it.key == static_cast<ESInt32Type>(key)) {
-                return it;
-            }
-        }
-    }
-
-    static constexpr ESInt32Type GetNumInternals() { return ModuleType::GetInternalList().size(); }
-
-    template <InputKeyType Key>
-    static constexpr ESInt32Type InputIndex() {
-        constexpr ESInputList b = ModuleType::GetInputList();
-        ESInt32Type index = 0;
-        for (int i = 0; i < 9; ++i) {
-            if (b[index].key == static_cast<ESInt32Type>(Key)) {
-                break;
-            }
-            index++;
-        }
-        return index;
-    }
-
-    template <OutputKeyType Key>
-    static constexpr ESInt32Type OutputIndex() {
-        constexpr ESInputList b = ModuleType::GetOutputList();
-        ESInt32Type index = 0;
-        for (int i = 0; i < 9; ++i) {
-            if (b[index].key == static_cast<ESInt32Type>(Key)) {
-                break;
-            }
-            index++;
-        }
-        return index;
-    }
-
-    template <InternalKeyType Key>
-    static constexpr ESInt32Type InternalIndex() {
-        constexpr ESInputList b = ModuleType::GetInternalList();
-        ESInt32Type index = 0;
-        for (int i = 0; i < 9; ++i) {
-            if (b[index].key == static_cast<ESInt32Type>(Key)) {
-                break;
-            }
-            index++;
-        }
-        return index;
-    }
-
-    template <InputKeyType Key>
-    static constexpr const auto& Input(const ESData* inputs) {
-        constexpr ESInputList inputList = ModuleType::GetInputList();
-        constexpr ESInt32Type index = InputIndex<Key>();
-        return Impl::GetDataHelper<inputList[index].dataType>(&inputs[index]);
-    }
-
-    template <OutputKeyType Key>
-    static constexpr auto& Output(ESData* data) {
-        constexpr ESOutputList outputList = ModuleType::GetOutputList();
-        constexpr ESInt32Type index = OutputIndex<Key>();
-        return Impl::GetDataHelper<outputList[index].dataType>(&data[index]);
-    }
-
-    template <InternalKeyType Key>
-    static constexpr auto& Internal(ESData* internals) {
-        constexpr ESInternalList internalList = ModuleType::GetInternalList();
-        constexpr ESInt32Type index = InternalIndex<Key>();
-        return Impl::GetDataHelper<internalList[index].dataType>(&internals[index]);
-    }
-
-    static inline ESInt32Type InputFlag(const ESInt32Type input) { return 1 << input; }
-
-    template <OutputKeyType key, typename DataType>
-    static void WriteOutput(const ESOutputRuntime* outputs, const DataType& data) {
-        ESInt32Type i = 0;
-        ESInt32Type index = static_cast<ESInt32Type>(key);
-        while (i < outputs[index].count) {
-            Output<key>(outputs[index].connections[i].data) = data;
-            outputs[index].connections[i].module->flags |=
-                InputFlag(outputs[index].connections[i].input);
-            ++i;
-        }
-    }
-};
-
 class ESEngine {
    public:
-    template <typename ModuleType, typename... InitArgs>
-    ESInt32Type CreateModule(InitArgs... args) {
+    template <typename ModuleType>
+    ESInt32Type CreateModule() {
         ESInt32Type index = modules_.size();
 
         // Add a new structure with the module information to the vector
         modules_.emplace_back(
-            ESModuleData{index,                                        // Id of the module
-                         Impl::ProcessModule<ModuleType>,              // Processing function
-                         Impl::InitializeModule<ModuleType>(args...),  // Initialization function
+            ESModuleData{index,                                 // Id of the module
+                         Impl::ProcessModule<ModuleType>,       // Processing function
+                         Impl::InitializeModule<ModuleType>(),  // Initialization function
                          ModuleType::GetNumInputs(), ModuleType::GetNumInternals(),
                          ModuleType::GetNumOutputs()});
 
@@ -322,10 +117,26 @@ class ESEngine {
         connections_.emplace_back(ESConnectionInfo{outModule, outIndex, inModule, inIndex});
     }
 
+    void SetConstData(ESInt32Type module, ESInt32Type input, const ESData& value) {
+        const_values_.emplace_back(ESConstValue{module, input, value});
+    }
+
     void Prepare() {
         Reorder();
         Pack();
         Initialize();
+        SendConstValues();
+    }
+
+    void SendEvent(ESInt32Type module, ESInt32Type input, const ESData& value) {
+        ESData* data_ptr = &data_[0];
+        for (auto& mod_data : modules_) {
+            if (mod_data.id == module) {
+                data_ptr[input] = value;
+                break;
+            }
+            data_ptr += mod_data.inputs + mod_data.internals;
+        }
     }
 
    private:
@@ -438,6 +249,12 @@ class ESEngine {
         }
     }
 
+    void SendConstValues() {
+        for (auto& value : const_values_) {
+            SendEvent(value.module, value.input, value.data);
+        }
+    }
+
     std::vector<ESModuleData> modules_;
     std::vector<ESConnectionInfo> connections_;
 
@@ -448,6 +265,7 @@ class ESEngine {
     std::vector<ESData> data_;
     std::vector<ESOutputRuntime> outputs_;
     std::vector<ESConnectionData> connection_data_;
+    std::vector<ESConstValue> const_values_;
 };
 
 }  // namespace ESSynth

@@ -1,16 +1,20 @@
 #include "ESEngine.h"
 #include "ESModuleAddFloat.h"
+#include "ESModuleAddInt.h"
 #include "ESModuleAudioOut.h"
-#include "ESModuleConstFloat.h"
-#include "ESModuleConstInt.h"
 #include "ESModuleCounter.h"
+#include "ESModuleDivideFloat.h"
+#include "ESModuleDivideInt.h"
 #include "ESModuleEventDivider.h"
+#include "ESModuleFloatToInt.h"
 #include "ESModuleIntToFloat.h"
 #include "ESModuleMidiEvent.h"
 #include "ESModuleMidiNote.h"
 #include "ESModuleMultiplyFloat.h"
+#include "ESModuleMultiplyInt.h"
 #include "ESModuleOscillatorBase.h"
 #include "ESModuleSubtractFloat.h"
+#include "ESModuleSubtractInt.h"
 
 #include "ESIoPortAudio.h"
 #include "ESIoPortMidi.h"
@@ -71,7 +75,7 @@ struct ESModuleTriangleOsc : public ESModuleOscillatorBase<ESModuleTriangleOsc> 
     }
 };
 
-enum class ESModuleInputSelectInputs { In1, In2, In3, In4 };
+enum class ESModuleInputSelectInputs { In1, In2, In3, Switch };
 
 enum class ESModuleInputSelectOutputs { Out };
 
@@ -79,23 +83,19 @@ enum class ESModuleInputSelectInternals { CurSelection };
 
 struct ESModuleInputSelect : ESModule<ESModuleInputSelect, ESModuleInputSelectInputs,
                                       ESModuleInputSelectOutputs, ESModuleInputSelectInternals> {
-    static constexpr ESInt32Type num_inputs = 4;
-    static constexpr ESInt32Type num_outputs = 1;
-    static constexpr ESInt32Type num_internals = 1;
-
-    static constexpr ESInputList GetInputList() {
-        return {{MakeInput(ESDataType::Opaque, "In1", TIn::In1),
-                MakeInput(ESDataType::Opaque, "In2", TIn::In2),
-                MakeInput(ESDataType::Opaque, "In3", TIn::In3),
-                MakeInput(ESDataType::Opaque, "In4", TIn::In4)}};
+    static constexpr auto GetInputList() {
+        return MakeIoList(MakeInput(ESDataType::Opaque, "In1", TIn::In1),
+                          MakeInput(ESDataType::Opaque, "In2", TIn::In2),
+                          MakeInput(ESDataType::Opaque, "In3", TIn::In3),
+                          MakeInput(ESDataType::Opaque, "Switch", TIn::Switch));
     }
 
-    static constexpr ESOutputList GetOutputList() {
-        return {{MakeOutput(ESDataType::Opaque, "Out", TOut::Out)}};
+    static constexpr auto GetOutputList() {
+        return MakeIoList(MakeOutput(ESDataType::Opaque, "Out", TOut::Out));
     }
 
-    static constexpr ESInternalList GetInternalList() {
-        return {{MakeInternal(ESDataType::Integer, "CurSelection", TInt::CurSelection)}};
+    static constexpr auto GetInternalList() {
+        return MakeIoList(MakeInternal(ESDataType::Integer, "CurSelection", TInt::CurSelection));
     }
 
     static void Initialize(ESModuleRuntimeData*, ESData* internals) {
@@ -108,27 +108,30 @@ struct ESModuleInputSelect : ESModule<ESModuleInputSelect, ESModuleInputSelectIn
             return 0;
         }
 
-        if (flags & InputFlag(3)) {
+        if (flags & InputFlag(TIn::Switch)) {
             Internal<TInt::CurSelection>(internals)++;
             if (Internal<TInt::CurSelection>(internals) >= 3) {
                 Internal<TInt::CurSelection>(internals) = 0;
             }
-            return 0;
         }
 
         switch (Internal<TInt::CurSelection>(internals)) {
             case 0:
-                WriteOutput<TOut::Out>(outputs, Input<TIn::In1>(inputs));
+
+                if (flags & InputFlag(TIn::In1)) {
+                    WriteOutput<TOut::Out>(outputs, Input<TIn::In1>(inputs));
+                }
                 break;
             case 1:
-                WriteOutput<TOut::Out>(outputs, Input<TIn::In2>(inputs));
+                if (flags & InputFlag(TIn::In2)) {
+                    WriteOutput<TOut::Out>(outputs, Input<TIn::In2>(inputs));
+                }
                 break;
             case 2:
-                WriteOutput<TOut::Out>(outputs, Input<TIn::In3>(inputs));
-                break;
-            case 3:
             default:
-                WriteOutput<TOut::Out>(outputs, Input<TIn::In4>(inputs));
+                if (flags & InputFlag(TIn::In3)) {
+                    WriteOutput<TOut::Out>(outputs, Input<TIn::In3>(inputs));
+                }
                 break;
         }
 
@@ -142,25 +145,22 @@ enum class ESModuleNoteToFreqOutputs { Frequency };
 
 struct ESModuleNoteToFreq
     : ESModule<ESModuleNoteToFreq, ESModuleNoteToFreqInputs, ESModuleNoteToFreqOutputs> {
-    static constexpr ESInt32Type num_inputs = 1;
-    static constexpr ESInt32Type num_outputs = 1;
-    static constexpr ESInt32Type num_internals = 0;
-
-    static constexpr ESInputList GetInputList() {
-        return {{MakeInput(ESDataType::Integer, "MidiNote", TIn::MidiNote)}};
+    static constexpr auto GetInputList() {
+        return MakeIoList(MakeInput(ESDataType::Integer, "MidiNote", TIn::MidiNote));
     }
 
-    static constexpr ESOutputList GetOutputList() {
-        return {{MakeOutput(ESDataType::Float, "Frequency", TOut::Frequency)}};
+    static constexpr auto GetOutputList() {
+        return MakeIoList(MakeOutput(ESDataType::Float, "Frequency", TOut::Frequency));
     }
 
-    static constexpr ESOutputList GetInternalList() { return {}; }
+    static constexpr auto GetInternalList() { return MakeIoList(); }
 
     static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData*,
                                const ESInt32Type& flags) {
         if (flags == 0) {
             return 0;
         }
+
         ESFloatType notes[] = {
             0.0f,     0.0f,     0.0f,     0.0f,     0.0f,     0.0f,     0.0f,     0.0f,
             0.0f,     0.0f,     0.0f,     0.0f,     16.35f,   17.32f,   18.35f,   19.45f,
@@ -190,21 +190,17 @@ enum class ESModuleGateInternals { LastGate };
 
 struct ESModuleGate
     : ESModule<ESModuleGate, ESModuleGateInputs, ESModuleGateOutputs, ESModuleGateInternals> {
-    static constexpr ESInt32Type num_inputs = 2;
-    static constexpr ESInt32Type num_outputs = 1;
-    static constexpr ESInt32Type num_internals = 1;
-
-    static constexpr ESInputList GetInputList() {
-        return {{MakeInput(ESDataType::Integer, "Gate", TIn::Gate),
-                MakeInput(ESDataType::Opaque, "EventIn", TIn::EventIn)}};
+    static constexpr auto GetInputList() {
+        return MakeIoList(MakeInput(ESDataType::Integer, "Gate", TIn::Gate),
+                          MakeInput(ESDataType::Opaque, "EventIn", TIn::EventIn));
     }
 
-    static constexpr ESOutputList GetOutputList() {
-        return {{MakeOutput(ESDataType::Opaque, "EventOut", TOut::EventOut)}};
+    static constexpr auto GetOutputList() {
+        return MakeIoList(MakeOutput(ESDataType::Opaque, "EventOut", TOut::EventOut));
     }
 
-    static constexpr ESOutputList GetInternalList() {
-        return {{MakeInternal(ESDataType::Integer, "LastGate", TInt::LastGate)}};
+    static constexpr auto GetInternalList() {
+        return MakeIoList(MakeInternal(ESDataType::Integer, "LastGate", TInt::LastGate));
     }
 
     static void Initialize(ESModuleRuntimeData*, ESData* internals) {
@@ -216,11 +212,12 @@ struct ESModuleGate
         if (flags == 0) {
             return 0;
         }
-        if (flags & InputFlag(0)) {
+
+        if (flags & InputFlag(TIn::Gate)) {
             Internal<TInt::LastGate>(internals) = Input<TIn::Gate>(inputs);
         }
 
-        if (flags & InputFlag(1)) {
+        if (flags & InputFlag(TIn::EventIn)) {
             if (Internal<TInt::LastGate>(internals)) {
                 WriteOutput<TOut::EventOut>(outputs, Input<TIn::EventIn>(inputs));
             }
@@ -229,37 +226,42 @@ struct ESModuleGate
     }
 };
 
-void test_modules(ESEngine& engine, ESIoPortAudio& audioInterface, ESIoPortMidi& midiInterface) {
-    ESInt32Type srcounter =
-        engine.CreateModule<ESModuleCounter>(0, audioInterface.GetSampleRate() - 1);
+void test_modules(ESEngine& engine, ESIoPortAudio& audioInterface) {
+    ESInt32Type srcounter = engine.CreateModule<ESModuleCounter>();
     ESInt32Type oscilator = engine.CreateModule<ESModuleSawOsc>();
     ESInt32Type oscilator2 = engine.CreateModule<ESModuleSineOsc>();
     ESInt32Type oscilator3 = engine.CreateModule<ESModuleSquareOsc>();
     ESInt32Type oscilator4 = engine.CreateModule<ESModuleTriangleOsc>();
-    ESInt32Type divider =
-        engine.CreateModule<ESModuleEventDivider>(audioInterface.GetSampleRate() / 100);
-    ESInt32Type changer =
-        engine.CreateModule<ESModuleEventDivider>(audioInterface.GetSampleRate() * 5);
-    ESInt32Type audioLeft = engine.CreateModule<ESModuleAudioOut>(0, &audioInterface);
-    ESInt32Type audioRight = engine.CreateModule<ESModuleAudioOut>(1, &audioInterface);
+    ESInt32Type divider = engine.CreateModule<ESModuleEventDivider>();
+    ESInt32Type changer = engine.CreateModule<ESModuleEventDivider>();
+    ESInt32Type audioLeft = engine.CreateModule<ESModuleAudioOut>();
+    ESInt32Type audioRight = engine.CreateModule<ESModuleAudioOut>();
 
-    ESInt32Type midiEvent = engine.CreateModule<ESModuleMidiEvent>(&midiInterface);
-    ESInt32Type midiNote = engine.CreateModule<ESModuleMidiNote>(&midiInterface);
+    ESInt32Type midiEvent = engine.CreateModule<ESModuleMidiEvent>();
+    ESInt32Type midiNote = engine.CreateModule<ESModuleMidiNote>();
 
     ESInt32Type noteOnFilter = engine.CreateModule<ESModuleGate>();
 
     ESInt32Type noteToFreq = engine.CreateModule<ESModuleNoteToFreq>();
 
     ESInt32Type scaler = engine.CreateModule<ESModuleMultiplyFloat>();
-    ESInt32Type scaleConst = engine.CreateModule<ESModuleConstFloat>(0.60f);
     ESInt32Type inputSelect = engine.CreateModule<ESModuleInputSelect>();
+
+    engine.SetConstData(srcounter, 0, ESData{.data_int32 = 0});
+    engine.SetConstData(srcounter, 1, ESData{.data_int32 = audioInterface.GetSampleRate() - 1});
+
+    engine.SetConstData(divider, 0, ESData{.data_int32 = audioInterface.GetSampleRate() / 100});
+    engine.SetConstData(changer, 0, ESData{.data_int32 = audioInterface.GetSampleRate() * 5});
+
+    engine.SetConstData(audioLeft, 0, ESData{.data_int32 = 0});
+    engine.SetConstData(audioRight, 0, ESData{.data_int32 = 1});
 
     engine.Connect(srcounter, 0, oscilator, 1);
     engine.Connect(srcounter, 0, oscilator2, 1);
     engine.Connect(srcounter, 0, oscilator3, 1);
     engine.Connect(srcounter, 0, oscilator4, 1);
-    engine.Connect(srcounter, 0, divider, 0);
-    engine.Connect(srcounter, 0, changer, 0);
+    engine.Connect(srcounter, 0, divider, 1);
+    engine.Connect(srcounter, 0, changer, 1);
 
     engine.Connect(divider, 0, midiEvent, 0);
     engine.Connect(midiEvent, 0, midiNote, 0);
@@ -278,7 +280,8 @@ void test_modules(ESEngine& engine, ESIoPortAudio& audioInterface, ESIoPortMidi&
     engine.Connect(changer, 0, inputSelect, 3);
 
     engine.Connect(inputSelect, 0, scaler, 0);
-    engine.Connect(scaleConst, 0, scaler, 1);
-    engine.Connect(scaler, 0, audioLeft, 0);
-    engine.Connect(scaler, 0, audioRight, 0);
+
+    engine.SetConstData(scaler, 1, ESData{.data_float = 0.60f});
+    engine.Connect(scaler, 0, audioLeft, 1);
+    engine.Connect(scaler, 0, audioRight, 1);
 }

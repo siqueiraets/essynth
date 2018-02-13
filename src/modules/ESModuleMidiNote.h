@@ -6,41 +6,40 @@
 
 namespace ESSynth {
 
-// TODO: Avoid using a global pointer
-ESMidiInterface* gMidiInterface = nullptr;
-
 enum class ESModuleMidiNoteInputs { MidiEvent };
 
 enum class ESModuleMidiNoteOutputs { MidiNote, MidiVelocity, MidiGate };
 
 struct ESModuleMidiNote
     : ESModule<ESModuleMidiNote, ESModuleMidiNoteInputs, ESModuleMidiNoteOutputs> {
-    static constexpr ESInputList GetInputList() {
-        return {{MakeInput(ESDataType::Integer, "MidiEvent", TIn::MidiEvent)}};
+    static constexpr auto GetInputList() {
+        return MakeIoList(MakeInput(ESDataType::Integer, "MidiEvent", TIn::MidiEvent));
     }
 
-    static constexpr ESOutputList GetOutputList() {
-        return {{MakeOutput(ESDataType::Integer, "MidiNote", TOut::MidiNote),
-                MakeOutput(ESDataType::Integer, "MidiVelocity", TOut::MidiVelocity),
-                MakeOutput(ESDataType::Integer, "MidiGate", TOut::MidiGate)}};
+    static constexpr auto GetOutputList() {
+        return MakeIoList(MakeOutput(ESDataType::Integer, "MidiNote", TOut::MidiNote),
+                          MakeOutput(ESDataType::Integer, "MidiVelocity", TOut::MidiVelocity),
+                          MakeOutput(ESDataType::Integer, "MidiGate", TOut::MidiGate));
     }
 
-    static constexpr ESOutputList GetInternalList() { return {}; }
-
-    static void Initialize(ESModuleRuntimeData*, ESData*, ESMidiInterface* midiInterface) {
-        gMidiInterface = midiInterface;
-    }
+    static constexpr auto GetInternalList() { return MakeIoList(); }
 
     static ESInt32Type Process(const ESData*, ESOutputRuntime* outputs, ESData*,
                                const ESInt32Type& flags) {
-        if (flags == 0 || !gMidiInterface) {
+        if (flags == 0) {
             return 0;
         }
 
         ESInt32Type note;
         ESInt32Type velocity;
         ESInt32Type gate;
-        if (gMidiInterface->GetNoteEvent(note, velocity, gate)) {
+
+        auto midiInterface = ESMidiInterface::GetCurrentInterface();
+        if (!midiInterface) {
+            return 0;
+        }
+
+        if (midiInterface->GetNoteEvent(note, velocity, gate)) {
             WriteOutput<TOut::MidiNote>(outputs, note);
             WriteOutput<TOut::MidiVelocity>(outputs, velocity);
             WriteOutput<TOut::MidiGate>(outputs, gate);

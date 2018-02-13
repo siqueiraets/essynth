@@ -5,29 +5,28 @@
 
 namespace ESSynth {
 
-enum class ESModuleEventDividerInputs { InEvent };
+enum class ESModuleEventDividerInputs { Divisor, InEvent };
 
 enum class ESModuleEventDividerOutputs { OutEvent };
 
-enum class ESModuleEventDividerInternals { MaxCount, CurrentValue };
+enum class ESModuleEventDividerInternals { CurrentValue };
 
 struct ESModuleEventDivider : ESModule<ESModuleEventDivider, ESModuleEventDividerInputs,
                                        ESModuleEventDividerOutputs, ESModuleEventDividerInternals> {
-    static constexpr ESInputList GetInputList() {
-        return {{MakeInput(ESDataType::Opaque, "InEvent", TIn::InEvent)}};
+    static constexpr auto GetInputList() {
+        return MakeIoList(MakeInput(ESDataType::Integer, "Divisor", TIn::Divisor),
+                          MakeInput(ESDataType::Opaque, "InEvent", TIn::InEvent));
     }
 
-    static constexpr ESOutputList GetOutputList() {
-        return {{MakeOutput(ESDataType::Opaque, "OutEvent", TOut::OutEvent)}};
+    static constexpr auto GetOutputList() {
+        return MakeIoList(MakeOutput(ESDataType::Opaque, "OutEvent", TOut::OutEvent));
     }
 
-    static constexpr ESOutputList GetInternalList() {
-        return {{MakeInternal(ESDataType::Integer, "MaxCount", TInt::MaxCount),
-                MakeInternal(ESDataType::Integer, "CurrentValue", TInt::CurrentValue)}};
+    static constexpr auto GetInternalList() {
+        return MakeIoList(MakeInternal(ESDataType::Integer, "CurrentValue", TInt::CurrentValue));
     }
 
-    static void Initialize(ESModuleRuntimeData*, ESData* internals, ESInt32Type count) {
-        Internal<TInt::MaxCount>(internals) = count;
+    static void Initialize(ESModuleRuntimeData*, ESData* internals) {
         Internal<TInt::CurrentValue>(internals) = 0;
     }
 
@@ -36,7 +35,8 @@ struct ESModuleEventDivider : ESModule<ESModuleEventDivider, ESModuleEventDivide
         if (flags == 0) {
             return 0;
         }
-        if (++Internal<TInt::CurrentValue>(internals) >= Internal<TInt::MaxCount>(internals)) {
+
+        if (++Internal<TInt::CurrentValue>(internals) >= Input<TIn::Divisor>(inputs)) {
             WriteOutput<TOut::OutEvent>(outputs, Input<TIn::InEvent>(inputs));
             Internal<TInt::CurrentValue>(internals) = 0;
         }

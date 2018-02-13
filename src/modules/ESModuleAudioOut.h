@@ -6,39 +6,26 @@
 
 namespace ESSynth {
 
-// TODO avoid using global variable
-ESAudioInterface* gAudioInterface = nullptr;
+enum class ESModuleAudioOutInputs { OutputId, Amplitude };
 
-enum class ESModuleAudioOutInputs { Amplitude };
-
-enum class ESModuleAudioOutInternals { OutputId };
-
-struct ESModuleAudioOut : ESModule<ESModuleAudioOut, ESModuleAudioOutInputs, ESEmptyKeyType,
-                                   ESModuleAudioOutInternals> {
-    static constexpr ESInputList GetInputList() {
-        return {{MakeInput(ESDataType::Float, "Amplitude", TIn::Amplitude)}};
+struct ESModuleAudioOut : ESModule<ESModuleAudioOut, ESModuleAudioOutInputs> {
+    static constexpr auto GetInputList() {
+        return MakeIoList(MakeInput(ESDataType::Integer, "OutputId", TIn::OutputId),
+                          MakeInput(ESDataType::Float, "Amplitude", TIn::Amplitude));
     }
 
-    static constexpr ESOutputList GetOutputList() { return {}; }
+    static constexpr auto GetOutputList() { return MakeIoList(); }
 
-    static constexpr ESOutputList GetInternalList() {
-        return {{MakeInternal(ESDataType::Integer, "OutputId", TInt::OutputId)}};
-    }
+    static constexpr auto GetInternalList() { return MakeIoList(); }
 
-    static void Initialize(ESModuleRuntimeData*, ESData* internals, ESInt32Type outputId,
-                           ESAudioInterface* audioInterface) {
-        gAudioInterface = audioInterface;
-        Internal<TInt::OutputId>(internals) = outputId;
-    }
-
-    static ESInt32Type Process(const ESData* inputs, ESOutputRuntime*, ESData* internals,
+    static ESInt32Type Process(const ESData* inputs, ESOutputRuntime*, ESData*,
                                const ESInt32Type& flags) {
-        if (flags == 0) {
+        if ((flags & InputFlag(TIn::Amplitude)) == 0) {
             return 0;
         }
 
-        gAudioInterface->WriteOutput(Internal<TInt::OutputId>(internals),
-                                     Input<TIn::Amplitude>(inputs));
+        auto audioInterface = ESAudioInterface::GetCurrentInterface();
+        audioInterface->WriteOutput(Input<TIn::OutputId>(inputs), Input<TIn::Amplitude>(inputs));
         return 0;
     }
 };

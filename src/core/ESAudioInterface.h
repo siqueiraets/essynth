@@ -13,6 +13,14 @@ class ESAudioInterface {
     virtual void WriteOutput(ESInt32Type outputId, ESFloatType value) = 0;
     virtual ESInt32Type GetBufferSize() = 0;
     virtual ESInt32Type GetSampleRate() = 0;
+
+    static ESAudioInterface* GetCurrentInterface();
+
+   protected:
+    void SetCurrentInterface(ESAudioInterface* interface);
+
+   private:
+    static ESAudioInterface* current_;
 };
 
 }  // namespace ESSynth

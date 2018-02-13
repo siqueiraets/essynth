@@ -11,16 +11,16 @@ enum class ESModuleMultiplyIntOutputs { Out1 };
 
 struct ESModuleMultiplyInt
     : ESModule<ESModuleMultiplyInt, ESModuleMultiplyIntInputs, ESModuleMultiplyIntOutputs> {
-    static constexpr ESInputList GetInputList() {
-        return {{MakeInput(ESDataType::Integer, "In1", TIn::In1),
-                MakeInput(ESDataType::Integer, "In2", TIn::In2)}};
+    static constexpr auto GetInputList() {
+        return MakeIoList(MakeInput(ESDataType::Integer, "In1", TIn::In1),
+                          MakeInput(ESDataType::Integer, "In2", TIn::In2));
     }
 
-    static constexpr ESOutputList GetOutputList() {
-        return {{MakeOutput(ESDataType::Integer, "Out", TOut::Out1)}};
+    static constexpr auto GetOutputList() {
+        return MakeIoList(MakeOutput(ESDataType::Integer, "Out", TOut::Out1));
     }
 
-    static constexpr ESOutputList GetInternalList() { return {}; }
+    static constexpr auto GetInternalList() { return MakeIoList(); }
 
     static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData*,
                                const ESInt32Type& flags) {

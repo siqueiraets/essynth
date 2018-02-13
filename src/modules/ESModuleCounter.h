@@ -5,43 +5,43 @@
 
 namespace ESSynth {
 
+enum class ESModuleCounterInputs { InitialValue, FinalValue };
+
 enum class ESModuleCounterOutputs { Value };
 
-enum class ESModuleCounterInternals { InitialValue, CurrentValue, FinalValue };
+enum class ESModuleCounterInternals { CurrentValue };
 
-struct ESModuleCounter
-    : ESModule<ESModuleCounter, ESEmptyKeyType, ESModuleCounterOutputs, ESModuleCounterInternals> {
-    static constexpr ESInputList GetInputList() { return {}; }
-
-    static constexpr ESOutputList GetOutputList() {
-        return {{MakeOutput(ESDataType::Integer, "Value", TOut::Value)}};
+struct ESModuleCounter : ESModule<ESModuleCounter, ESModuleCounterInputs, ESModuleCounterOutputs,
+                                  ESModuleCounterInternals> {
+    static constexpr auto GetInputList() {
+        return MakeIoList(MakeInput(ESDataType::Integer, "InitialValue", TIn::InitialValue),
+                          MakeInput(ESDataType::Integer, "FinalValue", TIn::FinalValue));
     }
 
-    static constexpr ESOutputList GetInternalList() {
-        return {{MakeInternal(ESDataType::Integer, "InitialValue", TInt::InitialValue),
-                MakeInternal(ESDataType::Integer, "CurrentValue", TInt::CurrentValue),
-                MakeInternal(ESDataType::Integer, "FinalValue", TInt::FinalValue)}};
+    static constexpr auto GetOutputList() {
+        return MakeIoList(MakeOutput(ESDataType::Integer, "Value", TOut::Value));
     }
 
-    static void Initialize(ESModuleRuntimeData* runtimeData, ESData* internals,
-                           ESInt32Type initialValue, ESInt32Type finalValue) {
-        Internal<TInt::InitialValue>(internals) = initialValue;
-        Internal<TInt::CurrentValue>(internals) = initialValue;
-        Internal<TInt::FinalValue>(internals) = finalValue;
-        runtimeData->flags |= 1;
+    static constexpr auto GetInternalList() {
+        return MakeIoList(MakeInternal(ESDataType::Integer, "CurrentValue", TInt::CurrentValue));
     }
 
-    static ESInt32Type Process(const ESData*, ESOutputRuntime* outputs, ESData* internals,
+    static void Initialize(ESModuleRuntimeData*, ESData* internals) {
+        Internal<TInt::CurrentValue>(internals) = 0;
+    }
+
+    static ESInt32Type Process(const ESData* inputs, ESOutputRuntime* outputs, ESData* internals,
                                const ESInt32Type& flags) {
-        if (flags == 0) {
-            return 0;
+        if (flags & InputFlag(TIn::InitialValue)) {
+            Internal<TInt::CurrentValue>(internals) = Input<TIn::InitialValue>(inputs);
         }
+
         WriteOutput<TOut::Value>(outputs, Internal<TInt::CurrentValue>(internals));
         Internal<TInt::CurrentValue>(internals)++;
-        if (Internal<TInt::CurrentValue>(internals) > Internal<TInt::FinalValue>(internals)) {
-            Internal<TInt::CurrentValue>(internals) = Internal<TInt::InitialValue>(internals);
+        if (Internal<TInt::CurrentValue>(internals) > Input<TIn::FinalValue>(inputs)) {
+            Internal<TInt::CurrentValue>(internals) = Input<TIn::InitialValue>(inputs);
         }
-        return 1;
+        return 0;
     }
 };
 

@@ -1,7 +1,7 @@
 #ifndef ESDATATYPES_H_
 #define ESDATATYPES_H_
 
-#include <stdint.h>
+#include <cstdint>
 
 namespace ESSynth {
 

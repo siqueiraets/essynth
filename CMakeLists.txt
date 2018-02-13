@@ -20,8 +20,14 @@ add_subdirectory(src/gui)
 
 # Compile the main engine as a separate library to avoid adding
 # -fPIC to the final compilation flags due to Qt needs
-add_library(essynthlib module_test.cpp)
+add_library(essynthcore
+    src/io/ESIoPortAudio.cpp
+    src/io/ESIoPortMidi.cpp
+    src/core/ESAudioInterface.cpp
+    src/core/ESMidiInterface.cpp
+    module_test.cpp
+    )
 
 # Main application
 add_executable(essynth main.cpp)
-target_link_libraries (essynth essynthgui essynthlib portaudio portmidi)
+target_link_libraries (essynth essynthgui essynthcore portaudio portmidi)
