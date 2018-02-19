@@ -13,13 +13,16 @@ class ESIoPortAudio : public ESAudioInterface {
    public:
     ESIoPortAudio(ESEngine* engine);
 
-    virtual ESInt32Type Initialize() override;
-    virtual ESInt32Type OpenOutputInterface(ESInt32Type /* interfaceId */) override;
-    virtual ESInt32Type Start() override;
-    virtual void WriteOutput(ESInt32Type outputId, ESFloatType value) override;
-    virtual ESInt32Type GetBufferSize() override;
+    ESInt32Type Initialize() override;
+    ESInt32Type OpenOutputInterface(ESInt32Type /* interfaceId */) override;
+    ESInt32Type Start() override;
+    ESInt32Type Stop() override;
+    void WriteOutput(ESInt32Type outputId, ESFloatType value) override;
+    ESInt32Type GetBufferSize() override;
+    ESInt32Type GetSampleRate() override;
 
-    virtual ESInt32Type GetSampleRate() override;
+    std::map<ESInt32Type, std::string> ListInputInterfaces() override;
+    std::map<ESInt32Type, std::string> ListOutputInterfaces() override;
 
    private:
     static int PortAudioCallback(const void*, void* output, unsigned long frameCount,

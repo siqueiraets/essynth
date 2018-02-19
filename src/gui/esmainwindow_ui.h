@@ -19,6 +19,8 @@ class ESMainWindowUI : public QMainWindow {
    private slots:
     void MenuRequested(int x, int y);
     void ModuleMenuRequested(int x, int y, ESModuleUI* module);
+    void StartAudio();
+    void StopAudio();
 
    private:
     void SetupActions();

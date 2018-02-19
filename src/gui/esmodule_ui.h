@@ -2,6 +2,7 @@
 #define ESMODULE_UI_H
 
 #include <QGraphicsItem>
+#include <QVariant>
 
 #define MODULE_WIDTH 100
 #define MODULE_HEADER_HEIGHT 20
@@ -18,7 +19,7 @@
 
 class ESModuleUI : public QGraphicsItem {
    public:
-    ESModuleUI(int num_inputs, int num_outputs, QString name);
+    ESModuleUI(int num_inputs, int num_outputs, QString name, const QVariant &userData);
     virtual ~ESModuleUI() = default;
 
     QRectF boundingRect() const override;
@@ -30,6 +31,7 @@ class ESModuleUI : public QGraphicsItem {
     int num_inputs_;
     int num_outputs_;
     QString name_;
+    QVariant userData_;
 };
 
 #endif  // ESMODULE_UI_H

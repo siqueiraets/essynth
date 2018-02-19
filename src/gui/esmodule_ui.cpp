@@ -13,8 +13,8 @@ constexpr int getModuleHeight(int num_inputs, int num_outputs) {
            MODULE_LAST_PORT_OFFSET;
 }
 
-ESModuleUI::ESModuleUI(int num_inputs, int num_outputs, QString name)
-    : num_inputs_(num_inputs), num_outputs_(num_outputs), name_(name) {
+ESModuleUI::ESModuleUI(int num_inputs, int num_outputs, QString name, const QVariant &userData)
+    : num_inputs_(num_inputs), num_outputs_(num_outputs), name_(name), userData_(userData) {
     height_ = getModuleHeight(num_inputs_, num_outputs_);
     width_ = MODULE_WIDTH;
 }

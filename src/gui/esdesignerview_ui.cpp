@@ -20,6 +20,8 @@ ESDesignerViewUI::~ESDesignerViewUI() {
     delete scene_;
 }
 
+QPoint ESDesignerViewUI::GetLastPoint() { return last_point_; }
+
 void ESDesignerViewUI::mousePressEvent(QMouseEvent *event) {
     auto button = event->button();
     switch (button) {
@@ -32,12 +34,12 @@ void ESDesignerViewUI::mousePressEvent(QMouseEvent *event) {
             }
             break;
         case Qt::RightButton: {
-            auto point = event->pos();
-            auto item = dynamic_cast<ESModuleUI *>(itemAt(point));
+            last_point_ = event->pos();
+            auto item = dynamic_cast<ESModuleUI *>(itemAt(last_point_));
             if (!item) {
-                emit MenuRequested(point.x(), point.y());
+                emit MenuRequested(last_point_.x(), last_point_.y());
             } else {
-                emit ModuleMenuRequested(point.x(), point.y(), item);
+                emit ModuleMenuRequested(last_point_.x(), last_point_.y(), item);
             }
         } break;
         default:
@@ -91,9 +93,9 @@ void ESDesignerViewUI::wheelEvent(QWheelEvent *event) {
     event->setAccepted(false);
 }
 
-ESModuleUI *ESDesignerViewUI::AddModule(int x, int y, int num_inputs, int num_outputs,
-                                        QString name) {
-    auto module = new ESModuleUI(num_inputs, num_outputs, name);
+ESModuleUI *ESDesignerViewUI::AddModule(int x, int y, int num_inputs, int num_outputs, QString name,
+                                        const QVariant &userData) {
+    auto module = new ESModuleUI(num_inputs, num_outputs, name, userData);
 
     // Translate widget coordinates to scene coordinates
     auto point = mapToScene(x, y);

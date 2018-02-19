@@ -45,6 +45,14 @@ ESInt32Type ESIoPortAudio::Start() {
     return 0;
 }
 
+ESInt32Type ESIoPortAudio::Stop() {
+    PaError err = Pa_StopStream(pa_stream_);
+    if (err != paNoError) {
+        return -1;
+    }
+    return 0;
+}
+
 void ESIoPortAudio::WriteOutput(ESInt32Type outputId, ESFloatType value) {
     if (outputId == 0) {
         value_left_ = value;
@@ -56,6 +64,30 @@ void ESIoPortAudio::WriteOutput(ESInt32Type outputId, ESFloatType value) {
 ESInt32Type ESIoPortAudio::GetBufferSize() { return buffer_size_; }
 
 ESInt32Type ESIoPortAudio::GetSampleRate() { return sample_rate_; }
+
+std::map<ESInt32Type, std::string> ESIoPortAudio::ListInputInterfaces() {
+    std::map<ESInt32Type, std::string> result;
+    int numDevices = Pa_GetDeviceCount();
+    for (int i = 0; i < numDevices; ++i) {
+        const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+        if (deviceInfo->name && deviceInfo->maxInputChannels) {
+            result[i] = deviceInfo->name;
+        }
+    }
+    return result;
+}
+
+std::map<ESInt32Type, std::string> ESIoPortAudio::ListOutputInterfaces() {
+    std::map<ESInt32Type, std::string> result;
+    int numDevices = Pa_GetDeviceCount();
+    for (int i = 0; i < numDevices; ++i) {
+        const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+        if (deviceInfo->name && deviceInfo->maxOutputChannels) {
+            result[i] = deviceInfo->name;
+        }
+    }
+    return result;
+}
 
 int ESIoPortAudio::PortAudioCallback(const void*, void* output, unsigned long frameCount,
                                      const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags,

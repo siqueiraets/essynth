@@ -2,6 +2,7 @@
 #define ESDESIGNERVIEW_UI_H
 
 #include <QGraphicsView>
+#include <QVariant>
 
 class ESModuleUI;
 class ESDesignerViewUI : public QGraphicsView {
@@ -10,8 +11,10 @@ class ESDesignerViewUI : public QGraphicsView {
     explicit ESDesignerViewUI(QWidget* parent);
     virtual ~ESDesignerViewUI();
 
-    ESModuleUI *AddModule(int x, int y, int num_inputs, int num_outputs, QString name);
+    ESModuleUI* AddModule(int x, int y, int num_inputs, int num_outputs, QString name,
+                          const QVariant& userData = QVariant());
     void RemoveModule(ESModuleUI* module);
+    QPoint GetLastPoint();
 
    protected:
     void mousePressEvent(QMouseEvent* event) override;

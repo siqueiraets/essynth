@@ -23,6 +23,19 @@ ESInt32Type ESIoPortMidi::OpenInputInterface(ESInt32Type interfaceId) {
     return 0;
 }
 
+ESInt32Type ESIoPortMidi::Start() {
+    // nothing for now
+    return 0;
+}
+
+ESInt32Type ESIoPortMidi::Stop() {
+    PmError err = Pm_Close(midi_stream_);
+    if (err != pmNoError) {
+        return -1;
+    }
+    return 0;
+}
+
 ESInt32Type ESIoPortMidi::GetNoteEvent(ESInt32Type& note, ESInt32Type& velocity,
                                        ESInt32Type& gate) {
     if (events_processed_ >= event_count_) {
@@ -59,3 +72,28 @@ void ESIoPortMidi::RefreshEvents() {
 
 ESInt32Type ESIoPortMidi::GetEventCount() { return event_count_ - events_processed_; }
 
+std::map<ESInt32Type, std::string> ESIoPortMidi::ListInputInterfaces() {
+    std::map<ESInt32Type, std::string> result;
+    int numDevices = Pm_CountDevices();
+
+    for (int i = 0; i < numDevices; ++i) {
+        const PmDeviceInfo* deviceInfo = Pm_GetDeviceInfo(i);
+        if (deviceInfo->name && deviceInfo->input) {
+            result[i] = deviceInfo->name;
+        }
+    }
+    return result;
+}
+
+std::map<ESInt32Type, std::string> ESIoPortMidi::ListOutputInterfaces() {
+    std::map<ESInt32Type, std::string> result;
+    int numDevices = Pm_CountDevices();
+
+    for (int i = 0; i < numDevices; ++i) {
+        const PmDeviceInfo* deviceInfo = Pm_GetDeviceInfo(i);
+        if (deviceInfo->name && deviceInfo->output) {
+            result[i] = deviceInfo->name;
+        }
+    }
+    return result;
+}
