@@ -2,13 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "esdesignerview_ui.h"
 
 namespace Ui {
 class ESMainWindowUI;
 }
 
-class ESModuleUI;
+class QGraphicsView;
 class ESMainWindowUI : public QMainWindow {
     Q_OBJECT
 
@@ -17,8 +16,8 @@ class ESMainWindowUI : public QMainWindow {
     ~ESMainWindowUI();
 
    private slots:
-    void MenuRequested(int x, int y);
-    void ModuleMenuRequested(int x, int y, ESModuleUI* module);
+    void HandleRemoveModule();
+    void ModuleConnected(int inputModuleId, int inputIndex, int outputModuleId, int outputIndex);
     void StartAudio();
     void StopAudio();
 
@@ -26,7 +25,7 @@ class ESMainWindowUI : public QMainWindow {
     void SetupActions();
 
     Ui::ESMainWindowUI *ui_;
-    ESDesignerViewUI *designer_view_;
+    QGraphicsView *designer_view_;
 };
 
 #endif  // MAINWINDOW_H

@@ -257,6 +257,7 @@ class ESEngine {
 
     std::vector<ESModuleData> modules_;
     std::vector<ESConnectionInfo> connections_;
+    std::vector<ESConstValue> const_values_;
 
     // Runtime data is put in this way to improve cache efficiency.
     // Access to runtime is serialized an put in order so the probability
@@ -265,7 +266,6 @@ class ESEngine {
     std::vector<ESData> data_;
     std::vector<ESOutputRuntime> outputs_;
     std::vector<ESConnectionData> connection_data_;
-    std::vector<ESConstValue> const_values_;
 };
 
 }  // namespace ESSynth

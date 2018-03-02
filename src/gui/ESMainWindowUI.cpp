@@ -1,10 +1,16 @@
-#include "esmainwindow_ui.h"
+#include "ESMainWindowUI.h"
+#include "ui_ESMainWindowUI.h"
+
 #include <QApplication>
+#include <QGraphicsView>
 #include <QWheelEvent>
-#include "esmodule_ui.h"
-#include "ui_esmainwindow.h"
+
+#include "ESDesignerScene.h"
+#include "ESModuleUI.h"
 
 #include "ESEngine.h"
+#include "ESIoPortAudio.h"
+#include "ESIoPortMidi.h"
 #include "ESModuleAddFloat.h"
 #include "ESModuleAudioOut.h"
 #include "ESModuleCounter.h"
@@ -14,9 +20,6 @@
 #include "ESModuleMidiNote.h"
 #include "ESModuleMultiplyFloat.h"
 #include "ESModuleSubtractFloat.h"
-
-#include "ESIoPortAudio.h"
-#include "ESIoPortMidi.h"
 
 #include <iostream>
 
@@ -31,22 +34,22 @@ class QMenu;
 QMenu* menu_view_;
 QMenu* menu_module_;
 
-QAction* add_module_2;
-QAction* add_module_4;
 QAction* del_module;
+ESDesignerScene* designer_scene;
 
 template <typename Type>
-static void SetupActionModuleType(QMenu* menu, ESDesignerViewUI* view) {
+static void SetupActionModuleType(QMenu* menu, QGraphicsView* view) {
     QAction* new_action;
     QString module_name = typeid(Type).name();
     new_action = new QAction(QString("Add module ") + module_name, nullptr);
     menu->addAction(new_action);
 
-    auto connectFn = [module_name, new_action, view]() {
-        auto point = view->GetLastPoint();
+    auto connectFn = [menu, module_name, view]() {
         auto moduleId = engine.CreateModule<Type>();
-        view->AddModule(point.x(), point.y(), Type::GetNumInputs(), Type::GetNumOutputs(),
-                        module_name, moduleId);
+        auto scenePoint = view->mapToScene(view->mapFromGlobal(menu->pos()));
+        ESModuleInfoUI moduleInfo{moduleId, Type::GetNumInputs(), Type::GetNumOutputs(),
+                                  module_name};
+        designer_scene->AddModule(scenePoint.x(), scenePoint.y(), moduleInfo);
     };
 
     QObject::connect(new_action, &QAction::triggered, new_action, connectFn);
@@ -54,7 +57,7 @@ static void SetupActionModuleType(QMenu* menu, ESDesignerViewUI* view) {
 
 template <typename... Types>
 struct SetupActionModules {
-    void operator()(QMenu* menu, ESDesignerViewUI* view) {
+    void operator()(QMenu* menu, QGraphicsView* view) {
         int unused[]{(SetupActionModuleType<Types>(menu, view), 0)...};
         (void)unused;
     }
@@ -62,13 +65,17 @@ struct SetupActionModules {
 
 ESMainWindowUI::ESMainWindowUI(QWidget* parent) : QMainWindow(parent), ui_(new Ui::ESMainWindowUI) {
     ui_->setupUi(this);
-    designer_view_ = new ESDesignerViewUI(ui_->frameDesigner);
+    menu_view_ = new QMenu(this);
+    menu_module_ = new QMenu(this);
 
-    menu_view_ = new QMenu(designer_view_);
-
-    menu_module_ = new QMenu(designer_view_);
+    designer_view_ = new QGraphicsView(this);
+    designer_scene = new ESDesignerScene(menu_view_, menu_module_, this);
     del_module = new QAction("Del module", designer_view_);
+
+    designer_view_->setScene(designer_scene);
     menu_module_->addAction(del_module);
+
+    ui_->frameDesigner->layout()->addWidget(designer_view_);
 
     if (audioInterface.Initialize() != 0) {
         std::cerr << "Failed to start audio interface" << std::endl;
@@ -92,11 +99,11 @@ ESMainWindowUI::ESMainWindowUI(QWidget* parent) : QMainWindow(parent), ui_(new U
 
     SetupActions();
 
-    connect(designer_view_, &ESDesignerViewUI::MenuRequested, this, &ESMainWindowUI::MenuRequested);
-    connect(designer_view_, SIGNAL(ModuleMenuRequested(int, int, ESModuleUI*)), this,
-            SLOT(ModuleMenuRequested(int, int, ESModuleUI*)));
+    connect(designer_scene, SIGNAL(ModuleConnected(int, int, int, int)), this,
+            SLOT(ModuleConnected(int, int, int, int)));
     connect(ui_->btnStart, SIGNAL(clicked()), this, SLOT(StartAudio()));
     connect(ui_->btnStop, SIGNAL(clicked()), this, SLOT(StopAudio()));
+    connect(del_module, SIGNAL(triggered()), this, SLOT(HandleRemoveModule()));
 }
 
 ESMainWindowUI::~ESMainWindowUI() {
@@ -105,20 +112,13 @@ ESMainWindowUI::~ESMainWindowUI() {
     delete menu_module_;
 }
 
-void ESMainWindowUI::MenuRequested(int x, int y) {
-    auto action = menu_view_->exec(designer_view_->mapToGlobal(QPoint(x, y)));
-    if (action == add_module_2) {
-        designer_view_->AddModule(x, y, 2, 2, "Module 2x2");
-    } else if (action == add_module_4) {
-        designer_view_->AddModule(x, y, 4, 4, "Module 4x4");
-    }
+void ESMainWindowUI::HandleRemoveModule() {
+    designer_scene->RemoveModule(del_module->data().toInt());
 }
 
-void ESMainWindowUI::ModuleMenuRequested(int x, int y, ESModuleUI* module) {
-    auto action = menu_module_->exec(designer_view_->mapToGlobal(QPoint(x, y)));
-    if (action == del_module) {
-        designer_view_->RemoveModule(module);
-    }
+void ESMainWindowUI::ModuleConnected(int inputModuleId, int inputIndex, int outputModuleId,
+                                     int outputIndex) {
+    engine.Connect(inputModuleId, inputIndex, outputModuleId, outputIndex);
 }
 
 void ESMainWindowUI::SetupActions() {

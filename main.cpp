@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "esmainwindow_ui.h"
+#include "ESMainWindowUI.h"
 
 int main(int argc, char* argv[]) {
     QApplication a(argc, argv);

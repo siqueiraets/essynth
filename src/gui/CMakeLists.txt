@@ -3,19 +3,21 @@ find_package(Qt5Widgets)
 find_package(Qt5Gui)
 
 set (essynthgui_src 
-    esdesignerview_ui.cpp
-    esmainwindow_ui.cpp
-    esmodule_ui.cpp
+    ESDesignerScene.cpp
+    ESMainWindowUI.cpp
+    ESModuleUI.cpp
+    ESConnectionUI.cpp
 )
 
 set (essynthgui_hdr
-    esdesignerview_ui.h
-    esmainwindow_ui.h
-    esmodule_ui.h
+    ESDesignerScene.h
+    ESMainWindowUI.h
+    ESModuleUI.h
+    ESConnectionUI.h
 )
 
 set (essynthgui_ui
-    esmainwindow.ui
+    ESMainWindowUI.ui
 )
 
 qt5_wrap_cpp(essynthgui_hdr_moc ${essynthgui_hdr})
