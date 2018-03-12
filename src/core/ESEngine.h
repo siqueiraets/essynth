@@ -42,9 +42,8 @@ static ESInt32Type ProcessModule(ESData* data, ESOutputRuntime* outputs, const E
 // SFINAE: check if the module has an initialize function
 template <class T>
 class ESModuleHasInitializer {
-    template <class ModuleType,
-              class = typename std::enable_if<
-                  !std::is_member_pointer<decltype(&ModuleType::Initialize)>::value>::type>
+    template <class ModuleType, class = typename std::enable_if<!std::is_member_pointer<
+                                    decltype(&ModuleType::Initialize)>::value>::type>
     static std::true_type check(int);
     template <class>
     static std::false_type check(...);
@@ -80,19 +79,24 @@ static auto InitializeModule(InitArgs... args) {
 
 class ESEngine {
    public:
+    ESEngine() : current_index(0) {}
+
     template <typename ModuleType>
     ESInt32Type CreateModule() {
-        ESInt32Type index = modules_.size();
-
         // Add a new structure with the module information to the vector
         modules_.emplace_back(
-            ESModuleData{index,                                 // Id of the module
+            ESModuleData{current_index,                         // Id of the module
                          Impl::ProcessModule<ModuleType>,       // Processing function
                          Impl::InitializeModule<ModuleType>(),  // Initialization function
                          ModuleType::GetNumInputs(), ModuleType::GetNumInternals(),
                          ModuleType::GetNumOutputs()});
 
-        return index;
+        return current_index++;
+    }
+
+    void DeleteModule(ESInt32Type id) {
+        std::remove_if(modules_.begin(), modules_.end(),
+                       [id](const ESModuleData& data) { return data.id == id; });
     }
 
     void Process() {
@@ -266,6 +270,9 @@ class ESEngine {
     std::vector<ESData> data_;
     std::vector<ESOutputRuntime> outputs_;
     std::vector<ESConnectionData> connection_data_;
+
+    // Current index being generated
+    ESInt32Type current_index;
 };
 
 }  // namespace ESSynth

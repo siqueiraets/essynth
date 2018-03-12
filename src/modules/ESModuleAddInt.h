@@ -10,6 +10,7 @@ enum class ESModuleAddIntInputs { In1, In2 };
 enum class ESModuleAddIntOutputs { Out1 };
 
 struct ESModuleAddInt : ESModule<ESModuleAddInt, ESModuleAddIntInputs, ESModuleAddIntOutputs> {
+    static std::string GetModuleName() { return "Add Integer"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "In1", TIn::In1),
                           MakeInput(ESDataType::Integer, "In2", TIn::In2));

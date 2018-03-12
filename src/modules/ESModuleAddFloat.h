@@ -11,6 +11,7 @@ enum class ESModuleAddFloatOutputs { Out1 };
 
 struct ESModuleAddFloat
     : ESModule<ESModuleAddFloat, ESModuleAddFloatInputs, ESModuleAddFloatOutputs> {
+    static std::string GetModuleName() { return "Add Float"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Float, "In1", TIn::In1),
                           MakeInput(ESDataType::Float, "In2", TIn::In2));

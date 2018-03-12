@@ -8,6 +8,7 @@ class ESMainWindowUI;
 }
 
 class QGraphicsView;
+class ESModuleUI;
 class ESMainWindowUI : public QMainWindow {
     Q_OBJECT
 
@@ -16,8 +17,11 @@ class ESMainWindowUI : public QMainWindow {
     ~ESMainWindowUI();
 
    private slots:
-    void HandleRemoveModule();
-    void ModuleConnected(int inputModuleId, int inputIndex, int outputModuleId, int outputIndex);
+    void HandleDelModule();
+    void HandleAddConst();
+    void HandleDelConst();
+    void ModuleConnected(ESModuleUI *inputModule, int inputIndex, ESModuleUI *outputModule,
+                         int outputIndex);
     void StartAudio();
     void StopAudio();
 

@@ -10,11 +10,10 @@ class QMenu;
 class ESDesignerScene : public QGraphicsScene {
     Q_OBJECT
    public:
-    ESDesignerScene(QMenu* contextMenu, QMenu* moduleMenu, QWidget* parent);
+    ESDesignerScene(QMenu* contextMenu, QWidget* parent);
     virtual ~ESDesignerScene();
 
-    void AddModule(int x, int y, const ESModuleInfoUI& moduleInfo);
-    void RemoveModule(int moduleId);
+    ESModuleUI* getModule(int moduleId);
 
    protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -24,13 +23,11 @@ class ESDesignerScene : public QGraphicsScene {
     void wheelEvent(QGraphicsSceneWheelEvent* event) override;
 
    signals:
-    void MenuRequested(int x, int y);
-    void ModuleMenuRequested(int x, int y, ESModuleUI*);
-    void ModuleConnected(int inputModuleId, int inputIndex, int outputModuleId, int outputIndex);
+    void ModuleConnected(ESModuleUI* inputModule, int inputIndex, ESModuleUI* outputModule,
+                         int outputIndex);
 
    private:
     QMenu* contextMenu_;
-    QMenu* moduleMenu_;
 
     bool connecting_;
     int outputIndex_;

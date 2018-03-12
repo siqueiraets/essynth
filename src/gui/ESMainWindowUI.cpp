@@ -5,21 +5,34 @@
 #include <QGraphicsView>
 #include <QWheelEvent>
 
+#include "ESConstValueUI.h"
 #include "ESDesignerScene.h"
-#include "ESModuleUI.h"
+#include "ESModule.h"
 
 #include "ESEngine.h"
 #include "ESIoPortAudio.h"
 #include "ESIoPortMidi.h"
 #include "ESModuleAddFloat.h"
+#include "ESModuleAddInt.h"
 #include "ESModuleAudioOut.h"
 #include "ESModuleCounter.h"
+#include "ESModuleDivideFloat.h"
+#include "ESModuleDivideInt.h"
 #include "ESModuleEventDivider.h"
+#include "ESModuleFloatToInt.h"
+#include "ESModuleGate.h"
 #include "ESModuleIntToFloat.h"
 #include "ESModuleMidiEvent.h"
 #include "ESModuleMidiNote.h"
 #include "ESModuleMultiplyFloat.h"
+#include "ESModuleMultiplyInt.h"
+#include "ESModuleNoteToFreq.h"
+#include "ESModuleSawOsc.h"
+#include "ESModuleSineOsc.h"
+#include "ESModuleSquareOsc.h"
 #include "ESModuleSubtractFloat.h"
+#include "ESModuleSubtractInt.h"
+#include "ESModuleTriangleOsc.h"
 
 #include <iostream>
 
@@ -33,23 +46,31 @@ class QMenu;
 
 QMenu* menu_view_;
 QMenu* menu_module_;
+QMenu* menu_input_;
+QMenu* menu_const_;
 
 QAction* del_module;
+QAction* add_const;
+QAction* del_const;
 ESDesignerScene* designer_scene;
 
 template <typename Type>
 static void SetupActionModuleType(QMenu* menu, QGraphicsView* view) {
     QAction* new_action;
-    QString module_name = typeid(Type).name();
-    new_action = new QAction(QString("Add module ") + module_name, nullptr);
+    QString module_name = QString::fromStdString(Type::GetModuleName());
+    new_action = new QAction(QString("Add ") + module_name, nullptr);
     menu->addAction(new_action);
 
     auto connectFn = [menu, module_name, view]() {
         auto moduleId = engine.CreateModule<Type>();
         auto scenePoint = view->mapToScene(view->mapFromGlobal(menu->pos()));
-        ESModuleInfoUI moduleInfo{moduleId, Type::GetNumInputs(), Type::GetNumOutputs(),
+        ESModuleInfoUI moduleInfo{moduleId, Type::GetNumOutputs(), Type::GetNumInputs(),
                                   module_name};
-        designer_scene->AddModule(scenePoint.x(), scenePoint.y(), moduleInfo);
+
+        auto module = new ESModuleUI(menu_module_, menu_input_, moduleInfo);
+        designer_scene->addItem(module);
+
+        module->setPos(scenePoint.x(), scenePoint.y());
     };
 
     QObject::connect(new_action, &QAction::triggered, new_action, connectFn);
@@ -67,13 +88,19 @@ ESMainWindowUI::ESMainWindowUI(QWidget* parent) : QMainWindow(parent), ui_(new U
     ui_->setupUi(this);
     menu_view_ = new QMenu(this);
     menu_module_ = new QMenu(this);
+    menu_input_ = new QMenu(this);
+    menu_const_ = new QMenu(this);
 
     designer_view_ = new QGraphicsView(this);
-    designer_scene = new ESDesignerScene(menu_view_, menu_module_, this);
-    del_module = new QAction("Del module", designer_view_);
+    designer_scene = new ESDesignerScene(menu_view_, this);
+    add_const = new QAction("Add Const", this);
+    del_module = new QAction("Del Module", this);
+    del_const = new QAction("Del Const", this);
 
     designer_view_->setScene(designer_scene);
     menu_module_->addAction(del_module);
+    menu_input_->addAction(add_const);
+    menu_const_->addAction(del_const);
 
     ui_->frameDesigner->layout()->addWidget(designer_view_);
 
@@ -99,33 +126,66 @@ ESMainWindowUI::ESMainWindowUI(QWidget* parent) : QMainWindow(parent), ui_(new U
 
     SetupActions();
 
-    connect(designer_scene, SIGNAL(ModuleConnected(int, int, int, int)), this,
-            SLOT(ModuleConnected(int, int, int, int)));
+    connect(designer_scene, SIGNAL(ModuleConnected(ESModuleUI*, int, ESModuleUI*, int)), this,
+            SLOT(ModuleConnected(ESModuleUI*, int, ESModuleUI*, int)));
     connect(ui_->btnStart, SIGNAL(clicked()), this, SLOT(StartAudio()));
     connect(ui_->btnStop, SIGNAL(clicked()), this, SLOT(StopAudio()));
-    connect(del_module, SIGNAL(triggered()), this, SLOT(HandleRemoveModule()));
+    connect(del_module, SIGNAL(triggered()), this, SLOT(HandleDelModule()));
+    connect(add_const, SIGNAL(triggered()), this, SLOT(HandleAddConst()));
+    connect(del_const, SIGNAL(triggered()), this, SLOT(HandleDelConst()));
 }
 
-ESMainWindowUI::~ESMainWindowUI() {
-    delete ui_;
-    delete menu_view_;
-    delete menu_module_;
+ESMainWindowUI::~ESMainWindowUI() { delete ui_; }
+
+void ESMainWindowUI::HandleDelModule() {
+    engine.DeleteModule(del_module->data().toInt());
+    auto module = designer_scene->getModule(del_module->data().toInt());
+    if (!module) return;
+    designer_scene->removeItem(module);
+    delete module;
 }
 
-void ESMainWindowUI::HandleRemoveModule() {
-    designer_scene->RemoveModule(del_module->data().toInt());
+void ESMainWindowUI::HandleAddConst() {
+    if (!add_const->data().canConvert<ESModuleInputInfoUI>()) {
+        return;
+    }
+
+    ESModuleInputInfoUI info = add_const->data().value<ESModuleInputInfoUI>();
+    auto module = designer_scene->getModule(info.module);
+    if (!module) return;
+
+    ESConstValueUI* constValue =
+        new ESConstValueUI(ESConstInfoUI{info.module, info.input}, menu_const_, module);
+    module->addConst(constValue);
 }
 
-void ESMainWindowUI::ModuleConnected(int inputModuleId, int inputIndex, int outputModuleId,
-                                     int outputIndex) {
-    engine.Connect(inputModuleId, inputIndex, outputModuleId, outputIndex);
+void ESMainWindowUI::HandleDelConst() {
+    if (!del_const->data().canConvert<ESConstInfoUI>()) {
+        return;
+    }
+
+    ESConstInfoUI info = del_const->data().value<ESConstInfoUI>();
+    auto module = designer_scene->getModule(info.module);
+    if (!module) return;
+
+    auto constValue = module->getConst(info.input);
+    delete constValue;
+}
+
+void ESMainWindowUI::ModuleConnected(ESModuleUI* inputModule, int inputIndex,
+                                     ESModuleUI* outputModule, int outputIndex) {
+    engine.Connect(outputModule->getId(), outputIndex, inputModule->getId(), inputIndex);
 }
 
 void ESMainWindowUI::SetupActions() {
     // Setup menu options to create modules
-    SetupActionModules<ESModuleAddFloat, ESModuleAudioOut, ESModuleCounter, ESModuleEventDivider,
-                       ESModuleIntToFloat, ESModuleMidiEvent, ESModuleMidiNote,
-                       ESModuleMultiplyFloat, ESModuleSubtractFloat>()(menu_view_, designer_view_);
+    SetupActionModules<ESModuleAddFloat, ESModuleAddInt, ESModuleAudioOut, ESModuleCounter,
+                       ESModuleDivideFloat, ESModuleDivideInt, ESModuleEventDivider,
+                       ESModuleFloatToInt, ESModuleGate, ESModuleIntToFloat, ESModuleMidiEvent,
+                       ESModuleMidiNote, ESModuleMultiplyFloat, ESModuleMultiplyInt,
+                       ESModuleNoteToFreq, ESModuleSawOsc, ESModuleSineOsc, ESModuleSquareOsc,
+                       ESModuleSubtractFloat, ESModuleSubtractInt, ESModuleTriangleOsc>()(
+        menu_view_, designer_view_);
 }
 
 void ESMainWindowUI::StartAudio() {

@@ -12,6 +12,7 @@ enum class ESModuleMidiNoteOutputs { MidiNote, MidiVelocity, MidiGate };
 
 struct ESModuleMidiNote
     : ESModule<ESModuleMidiNote, ESModuleMidiNoteInputs, ESModuleMidiNoteOutputs> {
+    static std::string GetModuleName() { return "Midi Note"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "MidiEvent", TIn::MidiEvent));
     }

@@ -11,6 +11,7 @@ enum class ESModuleMultiplyFloatOutputs { Out1 };
 
 struct ESModuleMultiplyFloat
     : ESModule<ESModuleMultiplyFloat, ESModuleMultiplyFloatInputs, ESModuleMultiplyFloatOutputs> {
+    static std::string GetModuleName() { return "Multiply Float"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Float, "In1", TIn::In1),
                           MakeInput(ESDataType::Float, "In2", TIn::In2));

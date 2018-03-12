@@ -11,6 +11,7 @@ enum class ESModuleDivideFloatOutputs { Out1 };
 
 struct ESModuleDivideFloat
     : ESModule<ESModuleDivideFloat, ESModuleDivideFloatInputs, ESModuleDivideFloatOutputs> {
+    static std::string GetModuleName() { return "Divide Float"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Float, "In1", TIn::In1),
                           MakeInput(ESDataType::Float, "In2", TIn::In2));

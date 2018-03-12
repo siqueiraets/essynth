@@ -11,6 +11,7 @@ enum class ESModuleIntToFloatOutputs { FloatValue };
 
 struct ESModuleIntToFloat
     : ESModule<ESModuleIntToFloat, ESModuleIntToFloatInputs, ESModuleIntToFloatOutputs> {
+    static std::string GetModuleName() { return "Integer to Float"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "IntValue", TIn::IntValue));
     }

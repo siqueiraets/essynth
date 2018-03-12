@@ -11,6 +11,7 @@ enum class ESModuleSubtractIntOutputs { Out1 };
 
 struct ESModuleSubtractInt
     : ESModule<ESModuleSubtractInt, ESModuleSubtractIntInputs, ESModuleSubtractIntOutputs> {
+    static std::string GetModuleName() { return "Subtract Integer"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "In1", TIn::In1),
                           MakeInput(ESDataType::Integer, "In2", TIn::In2));

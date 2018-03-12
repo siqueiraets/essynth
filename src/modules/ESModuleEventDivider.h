@@ -13,6 +13,7 @@ enum class ESModuleEventDividerInternals { CurrentValue };
 
 struct ESModuleEventDivider : ESModule<ESModuleEventDivider, ESModuleEventDividerInputs,
                                        ESModuleEventDividerOutputs, ESModuleEventDividerInternals> {
+    static std::string GetModuleName() { return "Event Divider"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "Divisor", TIn::Divisor),
                           MakeInput(ESDataType::Opaque, "InEvent", TIn::InEvent));

@@ -9,10 +9,9 @@
 #include "ESConnectionUI.h"
 #include "ESModuleUI.h"
 
-ESDesignerScene::ESDesignerScene(QMenu *contextMenu, QMenu *moduleMenu, QWidget *parent)
+ESDesignerScene::ESDesignerScene(QMenu *contextMenu, QWidget *parent)
     : QGraphicsScene(0, 0, 1024, 1024, parent),
       contextMenu_(contextMenu),
-      moduleMenu_(moduleMenu),
       connecting_(false),
       outputIndex_(0),
       itemConnectionOrig_(nullptr),
@@ -30,8 +29,7 @@ void ESDesignerScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     auto item = dynamic_cast<ESModuleUI *>(itemAt(event->scenePos(), QTransform()));
     if (item) {
         auto point = item->mapFromScene(event->scenePos());
-        outputIndex_ = item->isOutput(point.x(), point.y());
-        if (outputIndex_ != -1) {
+        if (item->isOutput(point.x(), point.y(), outputIndex_)) {
             connecting_ = true;
             itemConnectionOrig_ = item;
             connectionOrigPos_ = event->scenePos();
@@ -84,15 +82,14 @@ void ESDesignerScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
         return;
     }
 
+    int inputIndex;
     auto point = destItem->mapFromScene(event->scenePos());
-    int inputIndex = destItem->isInput(point.x(), point.y());
-    if (inputIndex != -1) {
+    if (destItem->isInput(point.x(), point.y(), inputIndex)) {
         ESConnectionUI *newConnection =
             new ESConnectionUI(outputIndex_, itemConnectionOrig_, inputIndex, destItem, 0);
         newConnection->updateGeometry();
         addItem(newConnection);
-        emit ModuleConnected(itemConnectionOrig_->getModuleId(), outputIndex_,
-                             destItem->getModuleId(), inputIndex);
+        emit ModuleConnected(itemConnectionOrig_, outputIndex_, destItem, inputIndex);
     }
 
     itemConnectionOrig_ = nullptr;
@@ -123,21 +120,15 @@ void ESDesignerScene::wheelEvent(QGraphicsSceneWheelEvent *event) {
     event->setAccepted(false);
 }
 
-void ESDesignerScene::AddModule(int x, int y, const ESModuleInfoUI &moduleInfo) {
-    auto module = new ESModuleUI(moduleMenu_, moduleInfo);
-
-    // Add module to scene
-    addItem(module);
-
-    // Update module position
-    module->setPos(x, y);
-}
-
-void ESDesignerScene::RemoveModule(int moduleId) {
+ESModuleUI *ESDesignerScene::getModule(int moduleId) {
     foreach (QGraphicsItem *item, items()) {
         ESModuleUI *moduleItem = dynamic_cast<ESModuleUI *>(item);
-        if (moduleItem->getModuleId() == moduleId) {
-            removeItem(moduleItem);
+        if (!moduleItem) continue;
+        if (moduleItem->getId() == moduleId) {
+            return moduleItem;
         }
     }
+
+    return nullptr;
 }
+

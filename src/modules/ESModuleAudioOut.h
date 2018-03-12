@@ -9,6 +9,7 @@ namespace ESSynth {
 enum class ESModuleAudioOutInputs { OutputId, Amplitude };
 
 struct ESModuleAudioOut : ESModule<ESModuleAudioOut, ESModuleAudioOutInputs> {
+    static std::string GetModuleName() { return "Audio Output"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "OutputId", TIn::OutputId),
                           MakeInput(ESDataType::Float, "Amplitude", TIn::Amplitude));

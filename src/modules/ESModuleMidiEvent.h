@@ -12,6 +12,7 @@ enum class ESModuleMidiEventOutputs { MidiEvent };
 
 struct ESModuleMidiEvent
     : ESModule<ESModuleMidiEvent, ESModuleMidiEventInputs, ESModuleMidiEventOutputs> {
+    static std::string GetModuleName() { return "Midi Event"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "ClockEvent", TIn::ClockEvent));
     }

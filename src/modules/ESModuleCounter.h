@@ -13,6 +13,7 @@ enum class ESModuleCounterInternals { CurrentValue };
 
 struct ESModuleCounter : ESModule<ESModuleCounter, ESModuleCounterInputs, ESModuleCounterOutputs,
                                   ESModuleCounterInternals> {
+    static std::string GetModuleName() { return "Counter"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "InitialValue", TIn::InitialValue),
                           MakeInput(ESDataType::Integer, "FinalValue", TIn::FinalValue));

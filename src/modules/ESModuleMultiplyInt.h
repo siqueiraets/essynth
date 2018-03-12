@@ -11,6 +11,7 @@ enum class ESModuleMultiplyIntOutputs { Out1 };
 
 struct ESModuleMultiplyInt
     : ESModule<ESModuleMultiplyInt, ESModuleMultiplyIntInputs, ESModuleMultiplyIntOutputs> {
+    static std::string GetModuleName() { return "Multiply Integer"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "In1", TIn::In1),
                           MakeInput(ESDataType::Integer, "In2", TIn::In2));

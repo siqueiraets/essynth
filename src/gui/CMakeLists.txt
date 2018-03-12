@@ -2,18 +2,22 @@
 find_package(Qt5Widgets)
 find_package(Qt5Gui)
 
-set (essynthgui_src 
+set (essynthgui_src
+    ESConnectionUI.cpp
+    ESConstValueTextUI.cpp
+    ESConstValueUI.cpp
     ESDesignerScene.cpp
     ESMainWindowUI.cpp
     ESModuleUI.cpp
-    ESConnectionUI.cpp
 )
 
 set (essynthgui_hdr
+    ESConnectionUI.h
+    ESConstValueTextUI.h
+    ESConstValueUI.h
     ESDesignerScene.h
     ESMainWindowUI.h
     ESModuleUI.h
-    ESConnectionUI.h
 )
 
 set (essynthgui_ui

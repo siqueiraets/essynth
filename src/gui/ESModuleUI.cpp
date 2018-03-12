@@ -1,5 +1,6 @@
 #include "ESModuleUI.h"
 #include "ESConnectionUI.h"
+#include "ESConstValueUI.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneContextMenuEvent>
@@ -30,8 +31,8 @@ constexpr int getModuleHeight(int num_inputs, int num_outputs) {
            ModuleLastPortOffset;
 }
 
-ESModuleUI::ESModuleUI(QMenu *contextMenu, const ESModuleInfoUI &moduleInfo)
-    : contextMenu_(contextMenu), moduleInfo_(moduleInfo) {
+ESModuleUI::ESModuleUI(QMenu *contextMenu, QMenu *inputMenu, const ESModuleInfoUI &moduleInfo)
+    : contextMenu_(contextMenu), inputMenu_(inputMenu), moduleInfo_(moduleInfo) {
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
     setFlag(QGraphicsItem::ItemIsMovable, true);
     setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -39,8 +40,9 @@ ESModuleUI::ESModuleUI(QMenu *contextMenu, const ESModuleInfoUI &moduleInfo)
 
 ESModuleUI::~ESModuleUI() {
     while (connections_.size()) {
-        delete connections_.front();
+        auto connection = connections_.front();
         connections_.erase(connections_.begin());
+        delete connection;
     }
 }
 
@@ -88,24 +90,26 @@ void ESModuleUI::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     }
 }
 
-int ESModuleUI::isInput(int x, int y) {
+bool ESModuleUI::isInput(int x, int y, int &index) {
     for (int i = 0; i < moduleInfo_.numInputs; ++i) {
         if ((x >= 0) && (x <= ModulePortSize) && (y >= getPortY(i)) &&
             (y <= (getPortY(i) + ModulePortSize))) {
-            return i;
+            index = i;
+            return true;
         }
     }
-    return -1;
+    return false;
 }
 
-int ESModuleUI::isOutput(int x, int y) {
+bool ESModuleUI::isOutput(int x, int y, int &index) {
     for (int i = 0; i < moduleInfo_.numOutputs; ++i) {
         if ((x >= ModuleWidth - ModulePortSize) && (x <= ModuleWidth) && (y >= getPortY(i)) &&
             (y <= (getPortY(i) + ModulePortSize))) {
-            return i;
+            index = i;
+            return true;
         }
     }
-    return -1;
+    return false;
 }
 
 QPoint ESModuleUI::getInputCoordinates(int input) const {
@@ -132,11 +136,36 @@ void ESModuleUI::removeConnection(ESConnectionUI *connection) {
     }
 }
 
-int ESModuleUI::getModuleId() const { return moduleInfo_.id; }
+void ESModuleUI::addConst(ESConstValueUI *constValue) {
+    constValue->setParentItem(this);
+    constValue->setPos(-constValue->boundingRect().width(),
+                       getPortY(constValue->getInfo().input) - 6);
+}
+
+ESConstValueUI *ESModuleUI::getConst(int input) {
+    foreach (QGraphicsItem *item, childItems()) {
+        ESConstValueUI *constValue = dynamic_cast<ESConstValueUI *>(item);
+        if (constValue && constValue->getInfo().input == input) {
+            return constValue;
+        }
+    }
+    return nullptr;
+}
+
+int ESModuleUI::getId() const { return moduleInfo_.id; }
 
 void ESModuleUI::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
-    foreach (QAction *action, contextMenu_->actions()) { action->setData(moduleInfo_.id); }
-    contextMenu_->exec(event->screenPos());
+    int index;
+    auto itemPos = event->pos();
+    if (isInput(itemPos.x(), itemPos.y(), index)) {
+        foreach (QAction *action, inputMenu_->actions()) {
+            action->setData(QVariant::fromValue(ESModuleInputInfoUI{moduleInfo_.id, index}));
+        }
+        inputMenu_->exec(event->screenPos());
+    } else {
+        foreach (QAction *action, contextMenu_->actions()) { action->setData(moduleInfo_.id); }
+        contextMenu_->exec(event->screenPos());
+    }
 }
 
 QVariant ESModuleUI::itemChange(GraphicsItemChange change, const QVariant &value) {
