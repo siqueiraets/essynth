@@ -20,8 +20,8 @@ class ESMainWindowUI : public QMainWindow {
     void HandleDelModule();
     void HandleAddConst();
     void HandleDelConst();
-    void ModuleConnected(ESModuleUI *inputModule, int inputIndex, ESModuleUI *outputModule,
-                         int outputIndex);
+    void ModuleConnected(ESModuleUI *outputModule, int outputIndex, ESModuleUI *inputModule,
+                         int inputIndex);
     void StartAudio();
     void StopAudio();
 

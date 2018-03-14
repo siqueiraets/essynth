@@ -157,6 +157,22 @@ void ESMainWindowUI::HandleAddConst() {
     ESConstValueUI* constValue =
         new ESConstValueUI(ESConstInfoUI{info.module, info.input}, menu_const_, module);
     module->addConst(constValue);
+    constValue->registerSignal([constValue]() {
+        auto constInfo = constValue->getInfo();
+        bool ok = false;
+
+        ESInt32Type intValue = constValue->getTextValue().toInt(&ok);
+        if (ok) {
+            engine.SetConstData(constInfo.module, constInfo.input, ESData{.data_int32 = intValue});
+            return;
+        }
+
+        ESFloatType floatValue = constValue->getTextValue().toFloat(&ok);
+        if (ok) {
+            engine.SetConstData(constInfo.module, constInfo.input,
+                                ESData{.data_float = floatValue});
+        }
+    });
 }
 
 void ESMainWindowUI::HandleDelConst() {
@@ -172,8 +188,8 @@ void ESMainWindowUI::HandleDelConst() {
     delete constValue;
 }
 
-void ESMainWindowUI::ModuleConnected(ESModuleUI* inputModule, int inputIndex,
-                                     ESModuleUI* outputModule, int outputIndex) {
+void ESMainWindowUI::ModuleConnected(ESModuleUI* outputModule, int outputIndex,
+                                     ESModuleUI* inputModule, int inputIndex) {
     engine.Connect(outputModule->getId(), outputIndex, inputModule->getId(), inputIndex);
 }
 

@@ -23,8 +23,8 @@ class ESDesignerScene : public QGraphicsScene {
     void wheelEvent(QGraphicsSceneWheelEvent* event) override;
 
    signals:
-    void ModuleConnected(ESModuleUI* inputModule, int inputIndex, ESModuleUI* outputModule,
-                         int outputIndex);
+    void ModuleConnected(ESModuleUI* outputModule, int outputIndex, ESModuleUI* inputModule,
+                         int inputIndex);
 
    private:
     QMenu* contextMenu_;

@@ -1,5 +1,4 @@
 #include "ESConstValueUI.h"
-#include "ESConstValueTextUI.h"
 #include "ESModuleUI.h"
 
 #include <QGraphicsScene>
@@ -46,6 +45,8 @@ void ESConstValueUI::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 }
 
 QVariant ESConstValueUI::getValue() { return value_; }
+
+QString ESConstValueUI::getTextValue() { return textItem_->toPlainText(); }
 
 ESConstInfoUI ESConstValueUI::getInfo() { return inputInfo_; }
 

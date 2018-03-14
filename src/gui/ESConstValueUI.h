@@ -2,7 +2,11 @@
 #define ESCONSTVALUEUI_H
 
 #include <QGraphicsItem>
+#include <QObject>
+#include <QTextDocument>
 #include <QVariant>
+
+#include "ESConstValueTextUI.h"
 
 typedef struct {
     int module;
@@ -26,6 +30,14 @@ class ESConstValueUI : public QGraphicsItem {
     QVariant getValue();
     void setValue(const QVariant &value);
 
+    QString getTextValue();
+
+    template <typename Oper>
+    void registerSignal(Oper oper) {
+        QObject::connect(textItem_->document(), &QTextDocument::contentsChanged,
+                         textItem_->document(), oper);
+    }
+
    protected:
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
@@ -33,7 +45,7 @@ class ESConstValueUI : public QGraphicsItem {
    private:
     ESConstInfoUI inputInfo_;
     ESModuleUI *parent_;
-    ESConstValueTextUI* textItem_;
+    ESConstValueTextUI *textItem_;
     QVariant value_;
     QMenu *menu_;
 };

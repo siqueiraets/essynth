@@ -122,6 +122,10 @@ class ESEngine {
     }
 
     void SetConstData(ESInt32Type module, ESInt32Type input, const ESData& value) {
+        std::remove_if(const_values_.begin(), const_values_.end(),
+                       [module, input](const ESConstValue& data) {
+                           return (data.module == module) && (data.input == input);
+                       });
         const_values_.emplace_back(ESConstValue{module, input, value});
     }
 
