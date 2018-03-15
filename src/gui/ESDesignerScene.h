@@ -14,6 +14,8 @@ class ESDesignerScene : public QGraphicsScene {
     virtual ~ESDesignerScene();
 
     ESModuleUI* getModule(int moduleId);
+    void addConnection(ESModuleUI* outputModule, int outputIndex, ESModuleUI* inputModule,
+                       int inputIndex);
 
    protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -23,7 +25,7 @@ class ESDesignerScene : public QGraphicsScene {
     void wheelEvent(QGraphicsSceneWheelEvent* event) override;
 
    signals:
-    void ModuleConnected(ESModuleUI* outputModule, int outputIndex, ESModuleUI* inputModule,
+    void moduleConnected(ESModuleUI* outputModule, int outputIndex, ESModuleUI* inputModule,
                          int inputIndex);
 
    private:

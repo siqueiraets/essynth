@@ -14,6 +14,11 @@ class ESConnectionUI : public QGraphicsLineItem {
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     void updateGeometry();
 
+    ESModuleUI* getInputModule();
+    ESModuleUI* getOutputModule();
+    int getInputIndex();
+    int getOutputIndex();
+
    private:
     int outputIndex_;
     ESModuleUI* outputModule_;

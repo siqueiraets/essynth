@@ -17,11 +17,12 @@ static const QColor ModuleColor(32, 28, 53);
 static const QColor ModuleBackgroundColor(122, 122, 122);
 static const QColor ModuleOutputColor(32, 28, 53);
 
-ESConstValueUI::ESConstValueUI(const ESConstInfoUI &inputInfo, QMenu *menu, ESModuleUI *parent)
+ESConstValueUI::ESConstValueUI(const ESConstInfoUI &inputInfo, QMenu *menu, ESModuleUI *parent,
+                               const QString &value)
     : QGraphicsItem(parent), inputInfo_(inputInfo), value_(0), menu_(menu) {
     textItem_ = new ESConstValueTextUI(this);
     textItem_->setPos(0, 0);
-    textItem_->setPlainText("0");
+    textItem_->setPlainText(value);
 
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
     setFlag(QGraphicsItem::ItemIsMovable, false);  // TODO is not movable for now

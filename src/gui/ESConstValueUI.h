@@ -19,7 +19,8 @@ class ESModuleUI;
 class ESConstValueTextUI;
 class ESConstValueUI : public QGraphicsItem {
    public:
-    ESConstValueUI(const ESConstInfoUI &inputInfo, QMenu *menu, ESModuleUI *parent);
+    ESConstValueUI(const ESConstInfoUI &inputInfo, QMenu *menu, ESModuleUI *parent,
+                   const QString &value);
     virtual ~ESConstValueUI() = default;
 
     QRectF boundingRect() const override;

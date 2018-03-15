@@ -31,3 +31,12 @@ void ESConnectionUI::updateGeometry() {
                 mapFromItem(inputModule_, destPoint.x(), destPoint.y()));
     QGraphicsLineItem::setLine(line);
 }
+
+ESModuleUI* ESConnectionUI::getInputModule() { return inputModule_; }
+
+ESModuleUI* ESConnectionUI::getOutputModule() { return outputModule_; }
+
+int ESConnectionUI::getInputIndex() { return inputIndex_; }
+
+int ESConnectionUI::getOutputIndex() { return outputIndex_; }
+

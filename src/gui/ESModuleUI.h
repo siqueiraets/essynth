@@ -8,6 +8,7 @@ typedef struct {
     int id;
     int numOutputs;
     int numInputs;
+    int typeId;
     QString name;
 } ESModuleInfoUI;
 Q_DECLARE_METATYPE(ESModuleInfoUI);
@@ -41,6 +42,7 @@ class ESModuleUI : public QGraphicsItem {
     ESConstValueUI *getConst(int input);
 
     int getId() const;
+    int getTypeId() const;
 
    protected:
     void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;

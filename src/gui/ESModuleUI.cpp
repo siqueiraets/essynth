@@ -6,6 +6,7 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QMenu>
 #include <QPainter>
+#include <QStyleOptionGraphicsItem>
 
 static const int ModuleWidth = 100;
 static const int ModuleHeaderHeight = 20;
@@ -16,6 +17,7 @@ static const int ModulePortSize = 8;
 static const int ModuleCaptionSize = 13;
 static const int ModulePenWidth = 2;
 static const QColor ModuleColor(32, 28, 53);
+static const QColor ModuleSelectedColor(82, 105, 142);
 static const QColor ModuleBackgroundColor(122, 122, 122);
 static const QColor ModuleInputColor(133, 0, 0);
 static const QColor ModuleOutputColor(32, 28, 53);
@@ -60,7 +62,11 @@ void ESModuleUI::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setBrush(ModuleColor);
     painter->drawRect(0, 0, ModuleWidth, ModuleHeaderHeight);
 
-    painter->setPen(QPen(ModuleColor, ModulePenWidth));
+    if (option->state & QStyle::State_Selected) {
+        painter->setPen(QPen(ModuleSelectedColor, ModulePenWidth));
+    } else {
+        painter->setPen(QPen(ModuleColor, ModulePenWidth));
+    }
     painter->setBrush(ModuleBackgroundColor);
     painter->drawRect(
         0, ModuleHeaderHeight, ModuleWidth,
@@ -153,6 +159,8 @@ ESConstValueUI *ESModuleUI::getConst(int input) {
 }
 
 int ESModuleUI::getId() const { return moduleInfo_.id; }
+
+int ESModuleUI::getTypeId() const { return moduleInfo_.typeId; }
 
 void ESModuleUI::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
     int index;

@@ -17,16 +17,23 @@ class ESMainWindowUI : public QMainWindow {
     ~ESMainWindowUI();
 
    private slots:
-    void HandleDelModule();
-    void HandleAddConst();
-    void HandleDelConst();
-    void ModuleConnected(ESModuleUI *outputModule, int outputIndex, ESModuleUI *inputModule,
+    void handleActionSave();
+    void handleActionLoad();
+    void handleDelModule();
+    void handleAddConst();
+    void handleDelConst();
+    void moduleConnected(ESModuleUI *outputModule, int outputIndex, ESModuleUI *inputModule,
                          int inputIndex);
-    void StartAudio();
-    void StopAudio();
+    void startAudio();
+    void stopAudio();
+
+    int addModule(int typeId, int x, int y);
+    void addConst(int module, int input, const QString& value);
+    void setConstValue(int module, int input, const QString &value);
+    void addConnection(int outputModule, int outputIndex, int inputModule, int inputIndex);
 
    private:
-    void SetupActions();
+    void setupActions();
 
     Ui::ESMainWindowUI *ui_;
     QGraphicsView *designer_view_;

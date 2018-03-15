@@ -85,11 +85,8 @@ void ESDesignerScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
     int inputIndex;
     auto point = destItem->mapFromScene(event->scenePos());
     if (destItem->isInput(point.x(), point.y(), inputIndex)) {
-        ESConnectionUI *newConnection =
-            new ESConnectionUI(outputIndex_, itemConnectionOrig_, inputIndex, destItem, 0);
-        newConnection->updateGeometry();
-        addItem(newConnection);
-        emit ModuleConnected(itemConnectionOrig_, outputIndex_, destItem, inputIndex);
+        addConnection(itemConnectionOrig_, outputIndex_, destItem, inputIndex);
+        emit moduleConnected(itemConnectionOrig_, outputIndex_, destItem, inputIndex);
     }
 
     itemConnectionOrig_ = nullptr;
@@ -100,6 +97,8 @@ void ESDesignerScene::contextMenuEvent(QGraphicsSceneContextMenuEvent *event) {
         QGraphicsScene::contextMenuEvent(event);
         return;
     }
+
+    foreach (QAction *action, contextMenu_->actions()) { action->setData(event->scenePos()); }
     contextMenu_->exec(event->screenPos());
 }
 
@@ -130,5 +129,13 @@ ESModuleUI *ESDesignerScene::getModule(int moduleId) {
     }
 
     return nullptr;
+}
+
+void ESDesignerScene::addConnection(ESModuleUI *outputModule, int outputIndex,
+                                    ESModuleUI *inputModule, int inputIndex) {
+    ESConnectionUI *newConnection =
+        new ESConnectionUI(outputIndex, outputModule, inputIndex, inputModule, 0);
+    newConnection->updateGeometry();
+    addItem(newConnection);
 }
 
