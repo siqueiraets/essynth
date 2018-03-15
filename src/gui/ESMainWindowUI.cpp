@@ -20,6 +20,7 @@
 #include "ESModuleAddFloat.h"
 #include "ESModuleAddInt.h"
 #include "ESModuleAudioOut.h"
+#include "ESModuleClock.h"
 #include "ESModuleCounter.h"
 #include "ESModuleDivideFloat.h"
 #include "ESModuleDivideInt.h"
@@ -300,13 +301,13 @@ void ESMainWindowUI::moduleConnected(ESModuleUI* outputModule, int outputIndex,
 
 void ESMainWindowUI::setupActions() {
     // Setup menu options to create modules
-    setupActionModules<ESModuleAddFloat, ESModuleAddInt, ESModuleAudioOut, ESModuleCounter,
-                       ESModuleDivideFloat, ESModuleDivideInt, ESModuleEventDivider,
-                       ESModuleFloatToInt, ESModuleGate, ESModuleIntToFloat, ESModuleMidiEvent,
-                       ESModuleMidiNote, ESModuleMultiplyFloat, ESModuleMultiplyInt,
-                       ESModuleNoteToFreq, ESModuleSawOsc, ESModuleSineOsc, ESModuleSquareOsc,
-                       ESModuleSubtractFloat, ESModuleSubtractInt, ESModuleTriangleOsc>()(
-        menu_view_, designer_view_);
+    setupActionModules<ESModuleAddFloat, ESModuleAddInt, ESModuleAudioOut, ESModuleClock,
+                       ESModuleCounter, ESModuleDivideFloat, ESModuleDivideInt,
+                       ESModuleEventDivider, ESModuleFloatToInt, ESModuleGate, ESModuleIntToFloat,
+                       ESModuleMidiEvent, ESModuleMidiNote, ESModuleMultiplyFloat,
+                       ESModuleMultiplyInt, ESModuleNoteToFreq, ESModuleSawOsc, ESModuleSineOsc,
+                       ESModuleSquareOsc, ESModuleSubtractFloat, ESModuleSubtractInt,
+                       ESModuleTriangleOsc>()(menu_view_, designer_view_);
 }
 
 void ESMainWindowUI::startAudio() {

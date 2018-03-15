@@ -95,8 +95,20 @@ class ESEngine {
     }
 
     void DeleteModule(ESInt32Type id) {
-        std::remove_if(modules_.begin(), modules_.end(),
-                       [id](const ESModuleData& data) { return data.id == id; });
+        auto modEraseIt = std::remove_if(modules_.begin(), modules_.end(),
+                                         [id](const ESModuleData& data) { return data.id == id; });
+        modules_.erase(modEraseIt, modules_.end());
+
+        auto connEraseIt = std::remove_if(
+            connections_.begin(), connections_.end(), [id](const ESConnectionInfo& data) {
+                return (data.in_module == id) || (data.out_module == id);
+            });
+        connections_.erase(connEraseIt, connections_.end());
+
+        auto constEraseIt =
+            std::remove_if(const_values_.begin(), const_values_.end(),
+                           [id](const ESConstValue& data) { return data.module == id; });
+        const_values_.erase(constEraseIt, const_values_.end());
     }
 
     void Process() {

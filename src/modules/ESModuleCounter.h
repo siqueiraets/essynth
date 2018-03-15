@@ -5,7 +5,7 @@
 
 namespace ESSynth {
 
-enum class ESModuleCounterInputs { InitialValue, FinalValue };
+enum class ESModuleCounterInputs { InitialValue, FinalValue, Clock, Reset };
 
 enum class ESModuleCounterOutputs { Value };
 
@@ -16,7 +16,9 @@ struct ESModuleCounter : ESModule<ESModuleCounter, ESModuleCounterInputs, ESModu
     static std::string GetModuleName() { return "Counter"; }
     static constexpr auto GetInputList() {
         return MakeIoList(MakeInput(ESDataType::Integer, "InitialValue", TIn::InitialValue),
-                          MakeInput(ESDataType::Integer, "FinalValue", TIn::FinalValue));
+                          MakeInput(ESDataType::Integer, "FinalValue", TIn::FinalValue),
+                          MakeInput(ESDataType::Integer, "Clock", TIn::Clock),
+                          MakeInput(ESDataType::Integer, "Reset", TIn::Reset));
     }
 
     static constexpr auto GetOutputList() {
@@ -35,6 +37,14 @@ struct ESModuleCounter : ESModule<ESModuleCounter, ESModuleCounterInputs, ESModu
                                const ESInt32Type& flags) {
         if (flags & InputFlag(TIn::InitialValue)) {
             Internal<TInt::CurrentValue>(internals) = Input<TIn::InitialValue>(inputs);
+        }
+
+        if (flags & InputFlag(TIn::Reset)) {
+            Internal<TInt::CurrentValue>(internals) = Input<TIn::InitialValue>(inputs);
+        }
+
+        if (!(flags & InputFlag(TIn::Clock))) {
+            return 0;
         }
 
         WriteOutput<TOut::Value>(outputs, Internal<TInt::CurrentValue>(internals));
